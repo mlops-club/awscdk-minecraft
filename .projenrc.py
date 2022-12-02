@@ -19,13 +19,10 @@ you can learn about the tool here: https://github.com/phitoduck/phito-projen
 import json
 
 from phito_projen import PythonPackage
-from phito_projen.python_package import SetupPy
 from phito_projen.components.templatized_file import TemplatizedFile
 from projen import Project
-from projen.awscdk import AwsCdkPythonApp
-from projen.python import VenvOptions
 
-repo = Project(name="mlops-club")
+repo = Project(name="awscdk-minecraft")
 
 metaflow_cdk_package = PythonPackage(
     parent=repo,
@@ -38,20 +35,6 @@ metaflow_cdk_package = PythonPackage(
         "constructs >=10.0.5, <11.0.0",
     ],
 )
-
-# metaflow_cdk_package = AwsCdkPythonApp(
-#     name="awscdk-minecraft",
-#     outdir="awscdk-minecraft",
-#     module_name="cdk_minecraft",
-#     cdk_version="2.45.0",
-#     author_email="eric.russia97+mlops-club@gmail.com",
-#     author_name="The MLOps Club",
-#     version="0.0.0",
-#     venv_options=VenvOptions(envdir="../venv"),
-#     deps=["pydantic"],
-#     dev_deps=["minecraft"],
-#     parent=repo,
-# )
 
 vscode_settings_kwargs = dict(
     project=repo,
