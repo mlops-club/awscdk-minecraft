@@ -29,6 +29,14 @@ committing things to the repo that you don't want. You can always override `pre-
 git commit -m "I really want to commit this large file" --no-verify
 ```
 
+> 📌 Note: you may want to use a different email/username for this repository than
+> you typically use on your development machine. You can set your git settings locally
+> like so:
+
+```bash
+git config --local user.email my-personal-email@gmail.com
+git config --local user.user my-github-username
+```
 #### Notes on commits
 
 Ask Eric or Ryan if you need any help with these.
