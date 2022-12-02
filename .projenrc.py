@@ -86,11 +86,13 @@ repo.gitignore.add_patterns(
     "venv",
     "*cache*",
     ".env",
-    ".vscode/settings.json",
     "metaflow-repos",
     ".metaflow",
     "**cdk.out/",
     "**cdk.context.json",
+    ".vscode",
+    "!.vscode/python-docstring-template.mustache",
+    "!.vscode/example-settings.json",
 )
 
 # generate/update boilerplate project files in this repository
