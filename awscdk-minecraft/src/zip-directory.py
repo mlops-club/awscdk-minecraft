@@ -1,13 +1,5 @@
 import os
 from zipfile import ZipFile
-import zlib
-'''
-dir_path = os.getcwd()+'\\pack-me-up.zip'
-
-zip_file = zipfile.ZipFile(dir_path,mode='w')
-zip_file.write('HelloWorld.ipynb',compress_type=zipfile.ZIP_DEFLATED)
-zip_file.close()
-'''
 
 def collect_file_paths(target_dir):
     # Initialize a list for adding filepath strings to
