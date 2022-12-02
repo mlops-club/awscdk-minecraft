@@ -1,6 +1,5 @@
 import os
 from aws_cdk import App, Environment
-from functools import lru_cache
 
 from cdk_minecraft.example_stack import ExampleStack
 

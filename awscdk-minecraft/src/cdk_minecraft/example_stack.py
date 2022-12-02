@@ -1,9 +1,7 @@
 """Boilerplate stack to make sure the CDK is set up correctly."""
 
-from typing import Optional
-import aws_cdk as cdk
 
-from aws_cdk import Stack, CfnOutput
+from aws_cdk import Stack
 from constructs import Construct
 
 
