@@ -16,6 +16,16 @@ brew install just
 just install
 ```
 
+Alternatively, without brew:
+```
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to <DEST IN YOUR PATH>
+```
+
+where `DEST IN YOUR PATH` refers to a directory that is present in your `$PATH` environment variable. For example, you might have in your `~/.bashrc` the line `PATH=~/bin:$PATH` to look for programs in `~/bin` first, which would be the "DEST" supplied above.
+
+You also need `node` to run `pre-commit`, which you can install with `brew install nvm` and `nvm install 18`.
+
+
 ### How do I add code?
 
 We use pull requests. Create new branches based on `trunk` for experimentation, then open a PR for it.
