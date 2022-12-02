@@ -72,8 +72,8 @@ repos:
           # 'git checkout -b feat/my-new-feature' and then commit these changes to that branch
           - id: no-commit-to-branch
             args: ["--branch=trunk"]
-          # Detects *your* aws credentials from your ~/.aws/credentials file
-          - id: detect-aws-credentials
+          # # Detects *your* aws credentials from your ~/.aws/credentials file
+          # - id: detect-aws-credentials
           # Detects the presence of private keys
           - id: detect-private-key
 
