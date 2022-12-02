@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+
+  # minio (simulated S3)
+  cdk:
+    image: mlops-club/cdk
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    
