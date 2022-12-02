@@ -24,8 +24,8 @@ install: require-venv
     python -m pip install -e awscdk-minecraft
     # install pre-commit hooks to protect the quality of code committed by contributors
     pre-commit install
-    # install git lfs for downloading rootski CSVs and other large files in the repo
-    git lfs install
+    # # install git lfs for downloading rootski CSVs and other large files in the repo
+    # git lfs install
 
 cdk-deploy: require-venv
     cd ./awscdk-minecraft/ \
@@ -150,3 +150,7 @@ get-aws-account-id:
 
     aws_cli_response = json.loads(proc.stdout)
     print(aws_cli_response["Account"])
+
+# run quality checks and autoformatters against your code
+lint: require-venv
+    pre-commit run --all-files
