@@ -1,14 +1,15 @@
-FROM python:3.10-slim-buster
+FROM python:3.10-buster
 
 # CDK and dependencies
 WORKDIR /app
-RUN apt-get update && apt-get install nodejs
-RUN npm install -g aws-cdk
 
-# Application dependencies
-# This supports your company's private github repos
-# GITHUB_ACCESS_TOKEN should have read-only access to the code.
-WORKDIR /app
+RUN apt-get update && \
+ apt-get install -y \
+    nodejs npm
+
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+ apt-get install -y nodejs
+RUN npm install -g aws-cdk@2.45.x
 
 # Minimum Python App necessary to run pip install
 COPY pyproject.toml setup.cfg setup.py ./
