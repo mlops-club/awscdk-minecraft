@@ -9,8 +9,8 @@ AWS_REGION := "us-west-2"
 # install the project's python packages and other useful
 install: require-venv
     # install useful VS Code extensions
-    which code && code --install-extension njpwerner.autodocstring
-    which code && code --install-extension kokakiwi.vscode-just
+    which code && code --install-extension njpwerner.autodocstring || exit 0
+    which code && code --install-extension kokakiwi.vscode-just || exit 0
     # install python packages not belonging to any particular package in this repo,
     # but important for development
     python -m pip install \
