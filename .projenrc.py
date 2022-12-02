@@ -76,6 +76,7 @@ repo.gitignore.add_patterns(
     ".vscode",
     "!.vscode/python-docstring-template.mustache",
     "!.vscode/example-settings.json",
+    "*.env",
 )
 
 # generate/update boilerplate project files in this repository

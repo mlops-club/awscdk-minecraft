@@ -5,7 +5,8 @@ services:
   # minio (simulated S3)
   cdk:
     image: mlops-club/cdk
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: ./Dockerfile
-    

@@ -1,5 +1,5 @@
 import os
-from aws_cdk.core import App, Environment
+from aws_cdk import App, Environment
 
 from cdk_minecraft.example_stack import ExampleStack
 
