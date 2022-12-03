@@ -2,7 +2,7 @@ import pytest
 from aws_cdk import App
 from aws_cdk.assertions import Template
 
-from cdk_minecraft import ExampleStack
+from cdk_minecraft.example_stack import ExampleStack
 
 
 @pytest.fixture(scope="module")
