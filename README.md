@@ -19,6 +19,8 @@ If you're on windows, you'll have the best contributor experience using the Wind
 
 ### How do I run this project locally?
 
+TL;DR, install `node` and `just`.
+
 ```
 # install "just"; it's like "make", but less frustrating
 brew install just
@@ -27,15 +29,14 @@ brew install just
 just install
 ```
 
-Alternatively, without brew:
+Alternatively, without `brew`:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to <DEST IN YOUR PATH>
 ```
 
 where `DEST IN YOUR PATH` refers to a directory that is present in your `$PATH` environment variable. For example, you might have in your `~/.bashrc` the line `PATH=~/bin:$PATH` to look for programs in `~/bin` first, which would be the "DEST" supplied above.
 
-You also need `node` to run `pre-commit`, which you can install with `brew install nvm` and `nvm install 18`.
-
+You also need `node` to execute any code related to AWS CDK, which you can install with `brew install nvm` and `nvm install 18`.
 
 ### How do I add code?
 
