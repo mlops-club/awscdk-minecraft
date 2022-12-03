@@ -1,0 +1,7 @@
+*
+!src/
+!app.py
+!setup.cfg
+!setup.py
+!pyproject.toml
+!README.md
