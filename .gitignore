@@ -16,3 +16,4 @@ metaflow-repos
 !.vscode/python-docstring-template.mustache
 !.vscode/example-settings.json
 *.env
+*.idea
