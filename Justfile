@@ -9,8 +9,8 @@ AWS_REGION := "us-west-2"
 # install the project's python packages and other useful
 install: require-venv
     # install useful VS Code extensions
-    which code && code --install-extension njpwerner.autodocstring
-    which code && code --install-extension kokakiwi.vscode-just
+    which code && code --install-extension njpwerner.autodocstring || exit 0
+    which code && code --install-extension kokakiwi.vscode-just || exit 0
     # install python packages not belonging to any particular package in this repo,
     # but important for development
     python -m pip install \
@@ -31,7 +31,7 @@ cdk-deploy: require-venv
     cd ./awscdk-minecraft/ \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
-        AWS_ACCOUNT_ID=`just get-aws-account-id` \
+        AWS_ACCOUNT_ID=$(just get-aws-account-id) \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
         AWS_REGION={{AWS_REGION}} \
         cdk deploy \
@@ -42,13 +42,13 @@ cdk-deploy: require-venv
             --region {{AWS_REGION}} \
             --app "python3 app.py"
 
-cdk-destroy: require-venv login-to-aws
+cdk-destroy: require-venv
     cd awscdk-minecraft \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=`just get-aws-account-id` \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
-        cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}}
+        cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
 # generate CloudFormation from the code in "awscdk-minecraft"
 cdk-synth: require-venv login-to-aws
@@ -71,7 +71,7 @@ login-to-aws:
     MLOPS_CLUB_SSO_REGION="us-west-2"
 
     # TODO: make this check work so we can uncomment it. It will make it so we only have to
-    # open our browser if our log in has expired or we have not logged in before. 
+    # open our browser if our log in has expired or we have not logged in before.
     # skip if already logged in
     # aws sts get-caller-identity --profile ${MLOPS_CLUB_AWS_PROFILE_NAME} | cat | grep 'UserId' > /dev/null \
     #     && echo "[mlops-club] ✅ Logged in with aws cli" \
@@ -82,7 +82,7 @@ login-to-aws:
     aws configure set sso_start_url ${MLOPS_CLUB_SSO_START_URL} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
     aws configure set sso_region ${MLOPS_CLUB_SSO_REGION} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
     aws configure set sso_account_id ${MLOPS_CLUB_AWS_ACCOUNT_ID} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
-    # aws configure set sso_role_name AdministratorAccess --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
+    aws configure set sso_role_name AdministratorAccess --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
     aws configure set region ${MLOPS_CLUB_SSO_REGION} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
 
     # login to AWS using single-sign-on
@@ -92,7 +92,7 @@ login-to-aws:
     && echo "             Your '${MLOPS_CLUB_AWS_PROFILE_NAME}' profile has temporary credentials using this identity:" \
     && echo '' \
     && aws sts get-caller-identity --profile ${MLOPS_CLUB_AWS_PROFILE_NAME} | cat
-    
+
 # certain boilerplate files like setup.cfg, setup.py, and .gitignore are "locked";
 # you can modify their contents by editing the .projenrc.py file in the root of the repo.
 update-boilerplate-files: require-venv
