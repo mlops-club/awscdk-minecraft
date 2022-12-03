@@ -6,6 +6,17 @@
 The setup has only been tested for Linux and MacOS, not Windows :(.
 If you're on windows, you'll have the best contributor experience using the Windows Subsystem for Linux 2 (WSL2).
 
+## Useful links
+
+> 💡 Click the images to go to each collaboration tool.
+
+> 💡 Bookmark this repository so you can get quick access to these links.
+
+| | |
+|:-------------------------:|:-------------------------:|
+|<a href="https://app.gather.town/invite?token=f8SJlx7bS9KO6cOWvqIW" target="_"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/gather-town.png"></a>  <br/>Our virtual park (for remote collab) |  <a href="https://join.slack.com/t/rootskiio/shared_invite/zt-13avx8j84-mocJVx5wFAGNf5wUuy07OA" target="_"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/slack.png"></a> <br/>Slack, in the `#hackathon` channel |
+|<a href="https://www.figma.com/file/LzVP5Ed3i7NQqOkw6YbMVG/Untitled?node-id=0%3A1&t=uW2UsnZVnTNStUjm-1" target="_"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/roadmap.png"></a> <br/>Roadmap, tasks  |  <a href="https://www.figma.com/file/6y4vDowRkIZPTYOztIxgy7/Minecraft-Architecture?node-id=0%3A1&t=5JKxB5ylSnLLDZ4b-1" target="_"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/architecture.png"></a> <br/>Architecture|
+
 ### How do I run this project locally?
 
 ```
@@ -18,16 +29,28 @@ just install
 
 ### How do I add code?
 
+#### Branching strategy: trunk-based development with feature branches
+
 We use pull requests. Create new branches based on `trunk` for experimentation, then open a PR for it.
 You don't have to wait until you want to merge code to open a PR. For this project, the main purpose of doing PRs
 is to share knowledge and get early feedback on your ideas.
+
+#### Linting
 
 Passing the `pre-commit` checks isn't a huge deal. They are mostly for your own benefit to prevent you
 committing things to the repo that you don't want. You can always override `pre-commit` by running
 
 ```bash
+# run all of the quality checking tools against your code
+just lint
+```
+
+```bash
+# skip the quality checking tools locally
 git commit -m "I really want to commit this large file" --no-verify
 ```
+
+#### Git configuration
 
 > 📌 Note: you may want to use a different email/username for this repository than
 > you typically use on your development machine. You can set your git settings locally
@@ -38,8 +61,6 @@ git config --local user.email my-personal-email@gmail.com
 git config --local user.user my-github-username
 ```
 #### Notes on commits
-
-Ask Eric or Ryan if you need any help with these.
 
 DON'T COMMIT...
 
