@@ -5,7 +5,7 @@ The docker-container runs on AWS Batch. The constructs created in this module
 build a docker image with two things inside:
 
 - the AWS CDK CLI
-- a python package containing an ``aws_cdk.App`` that can deploy the 
+- a python package containing an ``aws_cdk.App`` that can deploy the
   minecraft server using ``cdk deploy``
 
 Once this image is built, the constructs in this module stage the docker image

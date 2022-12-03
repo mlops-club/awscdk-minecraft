@@ -1,17 +1,13 @@
 from pathlib import Path
 
-from aws_cdk import Stack
-from aws_cdk import aws_s3 as s3
-from constructs import Construct
 from aws_cdk import aws_batch_alpha as batch_alpha
+from aws_cdk import aws_ecr_assets as ecr_assets
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_iam as iam
-from aws_cdk import aws_ecr_assets as ecr_assets
+from constructs import Construct
 
 THIS_DIR = Path(__file__).parent
-DOCKERIZED_AWS_CDK_BUILD_CONTEXT = (
-    THIS_DIR / "../../../resources/awscdk-minecraft-server-deployer"
-).resolve()
+DOCKERIZED_AWS_CDK_BUILD_CONTEXT = (THIS_DIR / "../../../resources/awscdk-minecraft-server-deployer").resolve()
 
 # class ExampleStack(Construct):
 #     def __init__(
@@ -42,8 +38,7 @@ def make_minecraft_ec2_deployment__batch_job_definition(
                 log_driver=batch_alpha.LogDriver.AWSLOGS,
             ),
         ),
-        platform_capabilities=[batch_alpha.PlatformCapabilities.FARGATE]
-
+        platform_capabilities=[batch_alpha.PlatformCapabilities.FARGATE],
     )
 
 
@@ -53,7 +48,7 @@ def make_cdk_deployment_role(scope: Construct, id_prefix: str) -> iam.Role:
         scope=scope,
         id=f"{id_prefix}CdkDeployRole",
         assumed_by=iam.ServicePrincipal(service="ecs-tasks.amazonaws.com"),
-        managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")]
+        managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")],
     )
 
 

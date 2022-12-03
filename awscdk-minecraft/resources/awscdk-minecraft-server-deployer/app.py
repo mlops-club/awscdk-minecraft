@@ -1,6 +1,6 @@
 import os
-from aws_cdk import App, Environment
 
+from aws_cdk import App, Environment
 from minecraft_server_deployer.server_stack import ServerStack
 
 # for development, use account/region from cdk cli

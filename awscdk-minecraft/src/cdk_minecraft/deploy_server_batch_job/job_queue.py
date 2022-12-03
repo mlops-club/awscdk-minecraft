@@ -1,9 +1,9 @@
 """Boilerplate stack to make sure the CDK is set up correctly."""
-from constructs import Construct
+from typing import List, Optional
+
+from aws_cdk import aws_batch_alpha as batch
 from aws_cdk import aws_ec2 as ec2
 from constructs import Construct
-from typing import List, Optional
-from aws_cdk import aws_batch_alpha as batch
 
 
 class BatchJobQueue(Construct):
@@ -19,10 +19,7 @@ class BatchJobQueue(Construct):
         )
 
         self.job_queue = make_batch_job_queue(
-            scope=self,
-            id_prefix=self.node.id,
-            priority=1,
-            compute_environments=[fargate_compute_environment]
+            scope=self, id_prefix=self.node.id, priority=1, compute_environments=[fargate_compute_environment]
         )
 
 
@@ -31,9 +28,7 @@ def lookup_default_vpc(scope: Construct, id_prefix: str) -> ec2.Vpc:
 
 
 def make_fargate_compute_environment(
-    scope: Construct, 
-    id_prefix: str, 
-    vpc: ec2.Vpc
+    scope: Construct, id_prefix: str, vpc: ec2.Vpc
 ) -> batch.ComputeEnvironment:
     return batch.ComputeEnvironment(
         scope,
@@ -58,9 +53,7 @@ def make_batch_job_queue(
         id=f"{id_prefix}-job-queue",
         enabled=True,
         compute_environments=[
-            batch.JobQueueComputeEnvironment(
-                compute_environment=comp_env, order=idx + 1
-            )
+            batch.JobQueueComputeEnvironment(compute_environment=comp_env, order=idx + 1)
             for idx, comp_env in enumerate(compute_environments)
         ],
         priority=priority,
