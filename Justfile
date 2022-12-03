@@ -70,6 +70,8 @@ login-to-aws:
     MLOPS_CLUB_SSO_START_URL="https://d-926768adcc.awsapps.com/start"
     MLOPS_CLUB_SSO_REGION="us-west-2"
 
+    # TODO: make this check work so we can uncomment it. It will make it so we only have to
+    # open our browser if our log in has expired or we have not logged in before. 
     # skip if already logged in
     # aws sts get-caller-identity --profile ${MLOPS_CLUB_AWS_PROFILE_NAME} | cat | grep 'UserId' > /dev/null \
     #     && echo "[mlops-club] ✅ Logged in with aws cli" \
