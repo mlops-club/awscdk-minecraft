@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+
+  cdk:
+    image: mlops-club/cdk-server-deployer
+    command: cdk deploy --app 'python3 app.py'
+    env_file:
+      - .env
+    environment:
+      AWS_REGION: us-west-2
+    build:
+      context: .
+      dockerfile: ./Dockerfile
