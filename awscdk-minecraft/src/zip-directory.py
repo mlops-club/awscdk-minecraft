@@ -1,7 +1,10 @@
 import os
 from zipfile import ZipFile
 
-def collect_file_paths(target_dir):
+from typing import List
+
+
+def collect_file_paths(target_dir: str) -> List[str]:
     # Initialize a list for adding filepath strings to
     file_paths = []
     # Walk through the target directory and subdirectories generating file paths
