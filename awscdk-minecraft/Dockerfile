@@ -4,7 +4,7 @@ FROM python:3.10-buster
 WORKDIR /app
 
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    apt-get install -y nodejs npm
+    apt-get install -y nodejs npm gcc g++ make
 RUN npm install -g aws-cdk@2.45.x
 
 # Minimum Python App necessary to run pip install
