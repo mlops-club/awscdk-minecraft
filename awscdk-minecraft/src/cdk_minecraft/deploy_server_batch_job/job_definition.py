@@ -1,3 +1,4 @@
+"""Job definition for the batch job that will deploy the Minecraft server on EC2."""
 from pathlib import Path
 
 from aws_cdk import aws_batch_alpha as batch_alpha
@@ -19,7 +20,21 @@ DOCKERIZED_AWS_CDK_BUILD_CONTEXT = (THIS_DIR / "../../../resources/awscdk-minecr
 def make_minecraft_ec2_deployment__batch_job_definition(
     scope: Construct, id_prefix: str
 ) -> batch_alpha.JobDefinition:
+    """Create a batch job definition that can be used to deploy a Minecraft server on EC2.
 
+    Parameters
+    ----------
+    scope : Construct
+        The scope of the stack.
+    id_prefix : str
+        The prefix to use for the id of the job definition.
+        The id will be of the form f"{id_prefix}JobDefinition".
+
+    Returns
+    -------
+    batch_alpha.JobDefinition
+        The job definition.
+    """
     execution_role: iam.Role = make_batch_execution_role(scope=scope, id_prefix=id_prefix)
     job_role: iam.Role = make_cdk_deployment_role(scope=scope, id_prefix=id_prefix)
 
@@ -43,7 +58,21 @@ def make_minecraft_ec2_deployment__batch_job_definition(
 
 
 def make_cdk_deployment_role(scope: Construct, id_prefix: str) -> iam.Role:
-    """Grant the running batch job sufficient privileges to run CDK commands to provision/destroy resources."""
+    """Grant the running batch job sufficient privileges to run CDK commands to provision/destroy resources.
+
+    Parameters
+    ----------
+    scope : Construct
+        The scope of the stack.
+    id_prefix : str
+        The prefix to use for the id of the role.
+        The id will be of the form f"{id_prefix}CdkDeploymentRole".
+
+    Returns
+    -------
+    iam.Role
+        The role granting the necessary privileges for CDK commands.
+    """
     return iam.Role(
         scope=scope,
         id=f"{id_prefix}CdkDeployRole",
@@ -53,6 +82,21 @@ def make_cdk_deployment_role(scope: Construct, id_prefix: str) -> iam.Role:
 
 
 def make_batch_execution_role(scope: Construct, id_prefix: str) -> iam.Role:
+    """Create a role that can be assumed by the batch job to execute the CDK commands.
+
+    Parameters
+    ----------
+    scope : Construct
+        The scope of the stack.
+    id_prefix : str
+        The prefix to use for the id of the role.
+        The id will be of the form f"{id_prefix}BatchExecutionRole".
+
+    Returns
+    -------
+    iam.Role
+        The role granting the necessary privileges for CDK commands.
+    """
     role = iam.Role(
         scope=scope,
         id=f"{id_prefix}BatchRole",

@@ -11,6 +11,23 @@ from constructs import Construct
 
 
 class MinecraftPaasStack(Stack):
+    """Class to create a stack for the Minecraft PaaS.
+
+    Parameters
+    ----------
+    scope : Construct
+        The scope of the stack.
+    construct_id : str
+        The name of the stack, should be unique per App.
+    **kwargs
+        Any additional arguments to pass to the Stack constructor.
+
+    Attributes
+    ----------
+    job_queue : batch.JobQueue
+        The job queue.
+    """
+
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
