@@ -24,8 +24,8 @@ install: require-venv
     python -m pip install -e awscdk-minecraft
     # install pre-commit hooks to protect the quality of code committed by contributors
     pre-commit install
-    # install git lfs for downloading rootski CSVs and other large files in the repo
-    git lfs install
+    # # install git lfs for downloading rootski CSVs and other large files in the repo
+    # git lfs install
 
 cdk-deploy: require-venv
     cd ./awscdk-minecraft/ \
@@ -70,6 +70,8 @@ login-to-aws:
     MLOPS_CLUB_SSO_START_URL="https://d-926768adcc.awsapps.com/start"
     MLOPS_CLUB_SSO_REGION="us-west-2"
 
+    # TODO: make this check work so we can uncomment it. It will make it so we only have to
+    # open our browser if our log in has expired or we have not logged in before. 
     # skip if already logged in
     # aws sts get-caller-identity --profile ${MLOPS_CLUB_AWS_PROFILE_NAME} | cat | grep 'UserId' > /dev/null \
     #     && echo "[mlops-club] ✅ Logged in with aws cli" \
@@ -150,3 +152,7 @@ get-aws-account-id:
 
     aws_cli_response = json.loads(proc.stdout)
     print(aws_cli_response["Account"])
+
+# run quality checks and autoformatters against your code
+lint: require-venv
+    pre-commit run --all-files
