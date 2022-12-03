@@ -71,7 +71,7 @@ login-to-aws:
     MLOPS_CLUB_SSO_REGION="us-west-2"
 
     # TODO: make this check work so we can uncomment it. It will make it so we only have to
-    # open our browser if our log in has expired or we have not logged in before. 
+    # open our browser if our log in has expired or we have not logged in before.
     # skip if already logged in
     # aws sts get-caller-identity --profile ${MLOPS_CLUB_AWS_PROFILE_NAME} | cat | grep 'UserId' > /dev/null \
     #     && echo "[mlops-club] ✅ Logged in with aws cli" \
@@ -92,7 +92,7 @@ login-to-aws:
     && echo "             Your '${MLOPS_CLUB_AWS_PROFILE_NAME}' profile has temporary credentials using this identity:" \
     && echo '' \
     && aws sts get-caller-identity --profile ${MLOPS_CLUB_AWS_PROFILE_NAME} | cat
-    
+
 # certain boilerplate files like setup.cfg, setup.py, and .gitignore are "locked";
 # you can modify their contents by editing the .projenrc.py file in the root of the repo.
 update-boilerplate-files: require-venv
