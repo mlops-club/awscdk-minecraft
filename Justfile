@@ -31,7 +31,7 @@ cdk-deploy: require-venv
     cd ./awscdk-minecraft/ \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
-        AWS_ACCOUNT_ID=`just get-aws-account-id` \
+        AWS_ACCOUNT_ID=$(just get-aws-account-id) \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
         AWS_REGION={{AWS_REGION}} \
         cdk deploy \
@@ -42,13 +42,13 @@ cdk-deploy: require-venv
             --region {{AWS_REGION}} \
             --app "python3 app.py"
 
-cdk-destroy: require-venv login-to-aws
+cdk-destroy: require-venv
     cd awscdk-minecraft \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=`just get-aws-account-id` \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
-        cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}}
+        cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
 # generate CloudFormation from the code in "awscdk-minecraft"
 cdk-synth: require-venv login-to-aws
