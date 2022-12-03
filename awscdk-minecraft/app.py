@@ -1,5 +1,4 @@
 import os
-from aws_cdk import App, Environment
 
 from cdk_minecraft.stack import MinecraftPaasStack
 

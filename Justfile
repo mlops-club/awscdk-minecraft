@@ -82,7 +82,7 @@ login-to-aws:
     aws configure set sso_start_url ${MLOPS_CLUB_SSO_START_URL} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
     aws configure set sso_region ${MLOPS_CLUB_SSO_REGION} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
     aws configure set sso_account_id ${MLOPS_CLUB_AWS_ACCOUNT_ID} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
-    # aws configure set sso_role_name AdministratorAccess --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
+    aws configure set sso_role_name AdministratorAccess --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
     aws configure set region ${MLOPS_CLUB_SSO_REGION} --profile ${MLOPS_CLUB_AWS_PROFILE_NAME}
 
     # login to AWS using single-sign-on
