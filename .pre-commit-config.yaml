@@ -9,15 +9,6 @@
 x-exclude-projen: &projen-exclude-pattern ^(.*projen.*|.vscode/example-settings.json|.*setup.cfg|.*setup.py|.*pyproject.toml|.*gitignore)
 
 repos:
-    - repo: local
-      hooks:
-        - id: update-projen-managed-files
-          name: update-projen-managed-files
-          entry: python ./.projenrc.py
-          language: python
-          additional_dependencies: ["phitoduck-projen"]
-          pass_filenames: false
-
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v3.2.0
       hooks:
