@@ -20,7 +20,7 @@ DOCKERIZED_AWS_CDK_BUILD_CONTEXT = (THIS_DIR / "../../../resources/awscdk-minecr
 def make_minecraft_ec2_deployment__batch_job_definition(
     scope: Construct, id_prefix: str
 ) -> batch_alpha.JobDefinition:
-    """Create a batch job definition that can be used to deploy a Minecraft server on EC2.
+    """Create a batch job definition to deploy a Minecraft server on EC2.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def make_minecraft_ec2_deployment__batch_job_definition(
 
 
 def make_cdk_deployment_role(scope: Construct, id_prefix: str) -> iam.Role:
-    """Grant the running batch job sufficient privileges to run CDK commands to provision/destroy resources.
+    """Grant batch job privileges to run CDK commands to handle resources.
 
     Parameters
     ----------
