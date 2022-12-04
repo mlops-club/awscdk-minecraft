@@ -1,6 +1,7 @@
 import os
 
-from cdk_minecraft.stack import MinecraftPaasStack
+from aws_cdk import App, Environment
+from cdk_minecraft import MinecraftPaasStack
 
 # for development, use account/region from cdk cli
 DEV_ENV = Environment(account=os.environ["AWS_ACCOUNT_ID"], region=os.getenv("AWS_REGION"))

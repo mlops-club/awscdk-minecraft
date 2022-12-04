@@ -27,3 +27,6 @@ disable=
 
     # most hand-written CDK classes (constructs/stacks) have no public methods
     too-few-public-methods,
+
+    # pytest fixtures rely on this pattern
+    redefined-outer-name,
