@@ -35,6 +35,107 @@ def render_user_data_script(minecraft_semantic_version: str) -> str:
     )
 
 
+def add_alarms_to_stack(scope: Construct, ec2_instance_id: str) -> None:
+    """Add alarms to the stack.
+
+    Parameters
+    ----------
+    scope : Construct
+        The scope of the stack.
+    ec2_instance_id : str
+        The ID of the EC2 instance to monitor.
+
+    Returns
+    -------
+    None
+
+    """
+    cloudwatch.Alarm(
+        scope=scope,
+        id="MinecraftServerCpuAlarm",
+        metric=cloudwatch.Metric(
+            namespace="AWS/EC2",
+            metric_name="CPUUtilization",
+            dimensions_map={"InstanceId": ec2_instance_id},
+            statistic="Average",
+            period=cdk.Duration.minutes(1),
+        ),
+        comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold=80,
+        evaluation_periods=1,
+        treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
+        alarm_description="Alarm if CPU usage is greater than 80% for 1 minute",
+    )
+
+    cloudwatch.Alarm(
+        scope=scope,
+        id="MinecraftServerMemoryAlarm",
+        metric=cloudwatch.Metric(
+            namespace="System/Linux",
+            metric_name="MemoryUtilization",
+            dimensions_map={"InstanceId": ec2_instance_id},
+            statistic="Average",
+            period=cdk.Duration.minutes(1),
+        ),
+        comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold=80,
+        evaluation_periods=1,
+        treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
+        alarm_description="Alarm if memory usage is greater than 80% for 1 minute",
+    )
+
+    cloudwatch.Alarm(
+        scope=scope,
+        id="MinecraftServerDiskAlarm",
+        metric=cloudwatch.Metric(
+            namespace="System/Linux",
+            metric_name="DiskSpaceUtilization",
+            dimensions_map={"InstanceId": ec2_instance_id},
+            statistic="Average",
+            period=cdk.Duration.minutes(1),
+        ),
+        comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold=80,
+        evaluation_periods=1,
+        treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
+        alarm_description="Alarm if disk usage is greater than 80% for 1 minute",
+    )
+
+    cloudwatch.Alarm(
+        scope=scope,
+        id="MinecraftServerNetworkAlarm",
+        metric=cloudwatch.Metric(
+            namespace="System/Linux",
+            metric_name="NetworkIn",
+            dimensions_map={"InstanceId": ec2_instance_id},
+            statistic="Average",
+            period=cdk.Duration.minutes(1),
+        ),
+        comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold=80,
+        evaluation_periods=1,
+        treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
+        alarm_description="Alarm if network usage is greater than 80% for 1 minute",
+    )
+
+    cloudwatch.Alarm(
+        scope=scope,
+        id="MinecraftServerOpenConnectionsAlarm",
+        metric=cloudwatch.Metric(
+            namespace="System/Linux",
+            metric_name="NetworkIn",
+            dimensions_map={"InstanceId": ec2_instance_id},
+            statistic="Average",
+            period=cdk.Duration.minutes(1),
+        ),
+        comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold=80,
+        evaluation_periods=1,
+        treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
+        alarm_description="Alarm if number of open connections is greater than 80% for 1 minute",
+    )
+
+
 class ServerStack(Stack):
     """Stack responsible for creating the running minecraft server on AWS.
 
@@ -111,87 +212,12 @@ class ServerStack(Stack):
             security_group=_sg,
         )
 
-        cloudwatch.Alarm(
+        # add stack output for ip address of the ec2 instance
+        cdk.CfnOutput(
             scope=self,
-            id="MinecraftServerCpuAlarm",
-            metric=cloudwatch.Metric(
-                namespace="AWS/EC2",
-                metric_name="CPUUtilization",
-                dimensions={"InstanceId": _ec2.instance_id},
-                statistic="Average",
-                period=cdk.Duration.minutes(1),
-            ),
-            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-            threshold=80,
-            evaluation_periods=1,
-            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
-            alarm_description="Alarm if CPU usage is greater than 80% for 1 minute",
+            id="MinecraftServerIp",
+            value=_ec2.instance_public_ip,
+            description="The public IP address of the Minecraft server",
         )
 
-        cloudwatch.Alarm(
-            scope=self,
-            id="MinecraftServerMemoryAlarm",
-            metric=cloudwatch.Metric(
-                namespace="System/Linux",
-                metric_name="MemoryUtilization",
-                dimensions={"InstanceId": _ec2.instance_id},
-                statistic="Average",
-                period=cdk.Duration.minutes(1),
-            ),
-            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-            threshold=80,
-            evaluation_periods=1,
-            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
-            alarm_description="Alarm if memory usage is greater than 80% for 1 minute",
-        )
-
-        cloudwatch.Alarm(
-            scope=self,
-            id="MinecraftServerDiskAlarm",
-            metric=cloudwatch.Metric(
-                namespace="System/Linux",
-                metric_name="DiskSpaceUtilization",
-                dimensions={"InstanceId": _ec2.instance_id},
-                statistic="Average",
-                period=cdk.Duration.minutes(1),
-            ),
-            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-            threshold=80,
-            evaluation_periods=1,
-            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
-            alarm_description="Alarm if disk usage is greater than 80% for 1 minute",
-        )
-
-        cloudwatch.Alarm(
-            scope=self,
-            id="MinecraftServerNetworkAlarm",
-            metric=cloudwatch.Metric(
-                namespace="System/Linux",
-                metric_name="NetworkIn",
-                dimensions={"InstanceId": _ec2.instance_id},
-                statistic="Average",
-                period=cdk.Duration.minutes(1),
-            ),
-            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-            threshold=80,
-            evaluation_periods=1,
-            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
-            alarm_description="Alarm if network usage is greater than 80% for 1 minute",
-        )
-
-        cloudwatch.Alarm(
-            scope=self,
-            id="MinecraftServerOpenConnectionsAlarm",
-            metric=cloudwatch.Metric(
-                namespace="System/Linux",
-                metric_name="NetworkIn",
-                dimensions={"InstanceId": _ec2.instance_id},
-                statistic="Average",
-                period=cdk.Duration.minutes(1),
-            ),
-            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-            threshold=80,
-            evaluation_periods=1,
-            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING,
-            alarm_description="Alarm if number of open connections is greater than 80% for 1 minute",
-        )
+        add_alarms_to_stack(scope=self, ec2_instance_id=_ec2.instance_id)
