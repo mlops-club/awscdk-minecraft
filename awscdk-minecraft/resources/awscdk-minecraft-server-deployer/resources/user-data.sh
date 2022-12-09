@@ -38,6 +38,11 @@ services:
         - minecraft-server
         deploy:
             replicas: 1
+
+networks:
+    minecraft-server:
+        driver: overlay
+        name: minecraft-server
 EOF
 
 
@@ -48,7 +53,7 @@ EOF
 cd /home/ec2-user
 
 # create a docker stack
-docker network create minecraft-server
+# docker network create minecraft-server
 docker stack deploy -c docker-compose.yml minecraft
 
 chmod +x /home/ec2-user/setup.sh
