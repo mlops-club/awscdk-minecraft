@@ -2,7 +2,7 @@
 # References
 # - AWS CLI https://levelup.gitconnected.com/how-to-create-a-simple-docker-image-with-aws-cli-and-serverless-installed-d1cc2901946
 
-FROM alpine:3.16.2
+FROM --platform=linux/amd64 alpine:3.16.2
 
 # Install packages
 RUN apk update && apk add --update --no-cache \
