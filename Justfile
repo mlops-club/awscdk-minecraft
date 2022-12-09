@@ -64,7 +64,7 @@ cdk-diff: #require-venv
 # generate CloudFormation from the code in "awscdk-minecraft"
 cdk-synth: require-venv login-to-aws
     cd awscdk-minecraft \
-    && cdk synth --all --profile mlops-club
+    && cdk synth --all --profile mlops-club --app "python3 app.py"
 
 open-aws:
     #!/bin/bash

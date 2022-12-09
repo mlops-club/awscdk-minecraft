@@ -48,7 +48,6 @@ def add_alarms_to_stack(scope: Construct, ec2_instance_id: str) -> None:
     Returns
     -------
     None
-
     """
     cloudwatch.Alarm(
         scope=scope,
