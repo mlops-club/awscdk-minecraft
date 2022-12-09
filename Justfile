@@ -42,7 +42,18 @@ cdk-deploy: require-venv
             --region {{AWS_REGION}} \
             --app "python3 app.py"
 
-cdk-destroy: require-venv
+cdk-diff: #require-venv
+    cd ./awscdk-minecraft/ \
+    && \
+        AWS_PROFILE={{AWS_PROFILE}} \
+        AWS_ACCOUNT_ID=$(just get-aws-account-id) \
+        CDK_DEFAULT_REGION={{AWS_REGION}} \
+        AWS_REGION={{AWS_REGION}} \
+        cdk diff \
+            --profile {{AWS_PROFILE}} \
+            --region {{AWS_REGION}} \
+            --app "python3 app.py"
+
     cd awscdk-minecraft \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
