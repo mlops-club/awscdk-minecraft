@@ -25,7 +25,7 @@ RUN npm update -g
 RUN pip install --upgrade pip && \
     pip install --upgrade awscli
 # Install cdk
-RUN npm install -g aws-cdk
+RUN npm install -g aws-cdk@2.54.0
 RUN cdk --version
 
 WORKDIR /app
