@@ -4,7 +4,9 @@ services:
 
   cdk:
     image: mlops-club/cdk-server-deployer
-    command: cdk deploy --app 'python3 app.py' --require-approval=never
+    # command: cdk synth
+    command: cdk synth '*' --profile mlops-club --app 'python3 app.py'
+    # command: cdk deploy --app 'python3 app.py' --require-approval=never
     env_file:
       - .env
     environment:
