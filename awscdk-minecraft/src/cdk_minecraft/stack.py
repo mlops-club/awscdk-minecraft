@@ -7,6 +7,7 @@ from cdk_minecraft.deploy_server_batch_job.job_definition import (
     make_minecraft_ec2_deployment__batch_job_definition,
 )
 from cdk_minecraft.deploy_server_batch_job.job_queue import BatchJobQueue
+from cdk_minecraft.deploy_server_batch_job.state_machine import ProvisionMinecraftServerStateMachine
 from constructs import Construct
 
 
@@ -43,6 +44,13 @@ class MinecraftPaasStack(Stack):
             )
         )
 
+        mc_deployment_state_machine = ProvisionMinecraftServerStateMachine(
+            self,
+            construct_id=f"{construct_id}ProvisionMcStateMachine",
+            job_queue_arn=job_queue.job_queue_arn,
+            deploy_or_destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
+        )
+
         CfnOutput(
             self,
             id="MinecraftDeployerJobDefinitionArn",
@@ -62,4 +70,9 @@ class MinecraftPaasStack(Stack):
             self,
             id="MinecraftDeployerJobQueueName",
             value=job_queue.job_queue_name,
+        )
+        CfnOutput(
+            self,
+            id="StateMachineArn",
+            value=mc_deployment_state_machine.state_machine.state_machine_arn,
         )

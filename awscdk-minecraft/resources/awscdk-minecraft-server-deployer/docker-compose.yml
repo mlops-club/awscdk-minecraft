@@ -4,11 +4,16 @@ services:
 
   cdk:
     image: mlops-club/cdk-server-deployer
-    command: cdk deploy --app 'python3 app.py'
+    # command: cdk synth
+    # command: cdk synth '*' --app 'python3 app.py'
+    command: cdk deploy --app 'python3 app.py' --require-approval=never
     env_file:
       - .env
     environment:
       AWS_REGION: us-west-2
+      AWS_ACCOUNT_ID: "630013828440"
     build:
       context: .
       dockerfile: ./Dockerfile
+    # volumes:
+    #   - .:/app
