@@ -1,6 +1,8 @@
 """Boilerplate stack to make sure the CDK is set up correctly."""
 
 
+from textwrap import dedent
+
 from aws_cdk import Stack
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
@@ -57,11 +59,14 @@ class ServerStack(Stack):
             description="Allow all outbound traffic",
         )
 
-        # create iam role for ec2 instance
+        # create iam role for ec2 instance using AmazonSSMManagedInstanceCore
         _iam_role = iam.Role(
             scope=self,
             id="MinecraftServerIamRole",
             assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
+        )
+        _iam_role.add_managed_policy(
+            iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore")
         )
 
         ec2.Instance(
@@ -71,45 +76,56 @@ class ServerStack(Stack):
             instance_type=ec2.InstanceType("t2.medium"),
             machine_image=ec2.MachineImage.latest_amazon_linux(),
             user_data=ec2.UserData.custom(
-                f"""#!/bin/bash
-                cat EOF > /home/ec2-user/docker-compose.yml
-                version: '3.7'
-                services:
-                    minecraft:
-                        container_name: mc
-                        image: itzg/minecraft-server
-                        ports:
-                            - 25565:25565
-                        environment:
-                            EULA: "TRUE"
-                            VERSION: "{version}"
+                dedent(
+                    f"""\
+#!/bin/bash
 
-                EOF
+cat << EOF > /home/ec2-user/docker-compose.yml
+version: '3.7'
+services:
+    minecraft:
+        image: itzg/minecraft-server
+        restart: always
+        ports:
+            - 25565:25565
+        environment:
+            EULA: "TRUE"
+            VERSION: "{version}"
+        networks:
+        - minecraft-server
+        deploy:
+            replicas: 1
 
-                cat EOF > /home/ec2-user/setup.sh
-                #!/bin/bash
-                sudo yum update -y
-                sudo yum install -y docker docker-compose
-                sudo service docker start
+EOF
 
-                # install ssm agent
-                sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
-                sudo systemctl enable amazon-ssm-agent
-                sudo systemctl start amazon-ssm-agent
-                # install aws cli
-                sudo yum install -y python3
-                sudo pip3 install awscli --upgrade --user
-                # install aws s3 sync
-                sudo yum install -y s3fs-fuse
+cat << EOF > /home/ec2-user/setup.sh
+#!/bin/bash
+yum update -y
+yum install -y docker
 
-                cd /home/ec2-user && \
-                sudo docker-compose up -d
+# install docker-compose and make the binary executable
+curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose
+chmod +x /usr/bin/docker-compose
 
-                EOF
+service docker start
 
-                sudo chmod +x /home/ec2-user/setup.sh
-                sudo /home/ec2-user/setup.sh
+# install aws cli
+yum install -y python3
+pip3 install awscli --upgrade --user
+# install aws s3 sync
+yum install -y s3fs-fuse
+
+cd /home/ec2-user
+# initialize docker swarm
+docker swarm init
+# create a docker stack
+docker stack deploy -c docker-compose.yml minecraft
+EOF
+
+sudo chmod +x /home/ec2-user/setup.sh
+sudo /home/ec2-user/setup.sh
                 """
+                )
             ),
             user_data_causes_replacement=True,
             role=_iam_role,
