@@ -85,7 +85,5 @@ class ServerStack(Stack):
                 sudo /home/ec2-user/setup.sh
                 """
             ),
-            # add security group to allow inbound traffic on port 25565
-            # allow console access for debugging
             security_group=_sg,
         )
