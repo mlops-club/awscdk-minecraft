@@ -61,6 +61,8 @@ def make_minecraft_ec2_deployment__batch_job_definition(
                 "AWS_ACCOUNT_ID": stack.account,
                 "AWS_REGION": stack.region,
             },
+            vcpus=1,
+            memory_limit_mib=2 * 1024,
         ),
         platform_capabilities=[batch_alpha.PlatformCapabilities.FARGATE],
     )
