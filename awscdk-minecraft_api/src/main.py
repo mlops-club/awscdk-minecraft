@@ -11,7 +11,3 @@ async def root():
 
 # FastAPI: https://fastapi.tiangolo.com/tutorial/first-steps/
 # Rootski API docs: https://api.rootski.io/docs
-
-
-@app.post("/")
-async def
