@@ -57,11 +57,21 @@ class MinecraftPaasStack(Stack):
             deploy_or_destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
         )
 
+        # add an API Gateway endpoint to interact with the lambda function
+        # cognito_service = MinecraftCognitoConstruct(scope=self, construct_id="MinecraftCognitoService")
+        # authorizer = apigw.CognitoUserPoolsAuthorizer(
+        #     scope=self,
+        #     id="CognitoAuthorizer",
+        #     cognito_user_pools=[cognito_service.user_pool],
+        # )
+        # create lambda for the rest API and attach authorizer to API Gateway
         mc_rest_api = MinecraftPaaSRestApi(
             scope=self,
             construct_id="MinecraftPaaSRestAPI",
             provision_server_state_machine_arn=mc_deployment_state_machine.state_machine.state_machine_arn,
+            # authorizer=authorizer,
         )
+
         # add role to lambda to allow it to start the state machine
         mc_deployment_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
 
@@ -89,15 +99,6 @@ class MinecraftPaasStack(Stack):
             scope=self,
             id="StateMachineArn",
             value=mc_deployment_state_machine.state_machine.state_machine_arn,
-        )
-
-        # add an API Gateway endpoint to interact with the lambda function
-        # and add an authorizer to the API Gateway
-        cognito_service = MinecraftCognitoConstruct(scope=self, construct_id="MinecraftCognitoService")
-        authorizer = apigw.CognitoUserPoolsAuthorizer(
-            scope=self,
-            id="CognitoAuthorizer",
-            cognito_user_pools=[cognito_service.user_pool],
         )
 
         # pass the endpoint of the state machine to the lambda
@@ -135,7 +136,6 @@ class MinecraftCognitoConstruct(Construct):
                 require_uppercase=False,
                 require_symbols=False,
             ),
-            removal_policy=RemovalPolicy.DESTROY,
         )
 
         # add a client to the user pool, handle JWT tokens
@@ -148,6 +148,35 @@ class MinecraftCognitoConstruct(Construct):
             o_auth=cognito.OAuthSettings(
                 flows=cognito.OAuthFlows(authorization_code_grant=True, implicit_code_grant=True),
                 scopes=[cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID],
+                callback_urls=["https://localhost:3000"],
+                logout_urls=["https://localhost:3000"],
+            ),
+            id_token_validity=Duration.days(1),
+            access_token_validity=Duration.days(1),
+            refresh_token_validity=Duration.days(1),
+            prevent_user_existence_errors=True,
+        )
+        read_scope = cognito.ResourceServerScope(
+            scope_name="minecraft.read", scope_description="minecraft read scope"
+        )
+        resource_server = cognito.UserPoolResourceServer(
+            scope=self,
+            id="minecraft-resource-server",
+            identifier="minecraft-api-resource-server",
+            user_pool=self.user_pool,
+            scopes=[read_scope],
+        )
+
+        client_read_scope = cognito.OAuthScope.resource_server(resource_server, read_scope)
+
+        self.client_credentials = self.user_pool.add_client(
+            "MinecraftClientCredentialsClient",
+            user_pool_client_name="MinecraftClientCredentialsClient",
+            generate_secret=True,
+            auth_flows=cognito.AuthFlow(user_password=True, user_srp=True, admin_user_password=True),
+            o_auth=cognito.OAuthSettings(
+                flows=cognito.OAuthFlows(client_credentials=True),
+                scopes=[client_read_scope],
                 callback_urls=["https://localhost:3000"],
                 logout_urls=["https://localhost:3000"],
             ),

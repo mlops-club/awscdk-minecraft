@@ -23,6 +23,7 @@ class MinecraftPaaSRestApi(Construct):
         scope: Construct,
         construct_id: str,
         provision_server_state_machine_arn: str,
+        # authorizer: apigw.CfnAuthorizer,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -44,6 +45,10 @@ class MinecraftPaaSRestApi(Construct):
             id="Endpoint",
             handler=fast_api_function,
             proxy=True,
+            # default_method_options=apigw.MethodOptions(
+            #     authorization_type=apigw.AuthorizationType.COGNITO,
+            #     authorizer=authorizer,
+            # ),
         )
 
         CfnOutput(
@@ -51,6 +56,8 @@ class MinecraftPaaSRestApi(Construct):
             "EndpointURL",
             value=self.rest_api.url,
         )
+
+        self.rest_api.root
 
 
 def make_fast_api_function(
