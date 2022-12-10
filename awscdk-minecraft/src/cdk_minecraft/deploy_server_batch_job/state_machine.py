@@ -1,3 +1,4 @@
+"""AWS Step Function (State Machine) that deploys or destroys the Minecraft server."""
 from pathlib import Path
 from typing import Literal
 
@@ -9,6 +10,30 @@ THIS_DIR = Path(__file__).parent
 
 
 class ProvisionMinecraftServerStateMachine(Construct):
+    """
+    Class for the State Machine to deploy our Minecraft server.
+
+    The State Machine will be responsible for starting and stopping the server.
+
+    Parameters
+    ----------
+    scope : Construct
+        The parent construct.
+    construct_id : str
+        The name of the construct.
+    job_queue_arn : str
+        The ARN of the AWS Batch Job Queue.
+    deploy_or_destroy_mc_server_job_definition_arn : str
+        The ARN of the AWS Batch Job Definition for the CDK Deploy or Destroy Job.
+
+    Attributes
+    ----------
+    state_machine : sfn.StateMachine
+        The AWS Step Function State Machine.
+    namer : Callable[[str], str]
+        A function that prefixes the name of the construct with the name of the construct.
+    """
+
     def __init__(
         self,
         scope: Construct,
@@ -17,12 +42,6 @@ class ProvisionMinecraftServerStateMachine(Construct):
         deploy_or_destroy_mc_server_job_definition_arn: str,
         **kwargs,
     ) -> None:
-        """
-
-        {
-            "command": "destroy"
-        }
-        """
         super().__init__(scope, construct_id, **kwargs)
         self.namer = lambda name: f"{construct_id}-{name}"
 
@@ -76,7 +95,26 @@ def create__deploy_or_destroy__submit_batch_job_state(
     job_queue_arn: str,
     deploy_or_destroy_mc_server_job_definition_arn: str,
 ) -> sfn_tasks.BatchSubmitJob:
+    """Create the AWS Step Function State that submits the AWS Batch Job to deploy or destroy the Minecraft server.
 
+    Parameters
+    ----------
+    scope : Construct
+        The parent construct.
+    id_prefix : str
+        The prefix for the ID of the AWS Step Function State.
+    command : Literal["deploy", "destroy"]
+        The command to run. Must be one of "deploy" or "destroy".
+    job_queue_arn : str
+        The ARN of the AWS Batch Job Queue.
+    deploy_or_destroy_mc_server_job_definition_arn : str
+        The ARN of the AWS Batch Job Definition for the CDK Deploy or Destroy Job.
+
+    Returns
+    -------
+    sfn_tasks.BatchSubmitJob
+        The AWS Step Function State that submits the AWS Batch Job to deploy or destroy the Minecraft server.
+    """
     if command == "deploy":
         return sfn_tasks.BatchSubmitJob(
             scope=scope,
