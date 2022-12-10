@@ -12,7 +12,7 @@ from constructs import Construct
 # API_SUBDOMAIN = "api.rootski.io"
 
 THIS_DIR = Path(__file__).parent
-MINECRAFT_PAAS_BACKEND_API_DIR = THIS_DIR / "../../../awscdk-minecraft-api"
+MINECRAFT_PAAS_BACKEND_API_DIR = THIS_DIR / "../../../minecraft-platform-backend-api"
 
 
 class MinecraftPaaSRestApi(Construct):
