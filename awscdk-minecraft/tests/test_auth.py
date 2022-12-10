@@ -1,13 +1,17 @@
 """
 Do realistic testing of user authentication.
+
 These tests require:
 1. AWS Cognito
   - A User Pool is spun up
   - An app/web client is registered for that user pool
+
 2. Config
   - The ``rootski-config.yml`` file must be configured with the AWS Cognito values
+  
 3. The ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` env vars need to be set for an IAM user with admin access to the configured user pool
 """
+
 from pathlib import Path
 from pprint import pprint
 from typing import Tuple

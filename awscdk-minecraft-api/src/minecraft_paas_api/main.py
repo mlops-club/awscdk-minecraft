@@ -56,6 +56,9 @@ def trigger_state_machine(data: Dict[str, str]):
     if start_exec["ResponseMetadata"]["HTTPStatusCode"] != 200:
         return JSONResponse(content="Failure!", status_code=500)
 
+    # get status of state machine
+    # status = sfn_client.describe_execution(executionArn=start_exec["executionArn"])
+    # return JSONResponse(content="Success! {status}", status_code=200)
     return JSONResponse(content="Success!", status_code=200)
 
 
@@ -100,7 +103,7 @@ def create_app(
     app = FastAPI(
         title="Minecraft API",
         description="A FastAPI app for the Minecraft API.",
-        version="0.1.0",
+        version="0.0.1",
         docs_url="/",
         redoc_url=None,
         openapi_prefix=f"/{ENVIRONMENT}",
