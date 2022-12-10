@@ -1,19 +1,13 @@
 """Stack defining an API Gateway mapping to a Lambda function with the FastAPI app."""
 
-from enum import Enum
 from pathlib import Path
 
 import aws_cdk as cdk
-from aws_cdk import aws_apigateway as api_gateway
-from aws_cdk import aws_certificatemanager as certificatemanager
+from aws_cdk import CfnOutput
+from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as lambda_
-from aws_cdk import aws_route53 as route53
-from aws_cdk import aws_route53_targets as route53_targets
-from aws_cdk import aws_s3 as s3
 from constructs import Construct
-from aws_cdk import aws_apigateway as apigw
-from aws_cdk import CfnOutput
 
 # API_SUBDOMAIN = "api.rootski.io"
 
@@ -33,7 +27,7 @@ class MinecraftPaaSRestApi(Construct):
     ):
         super().__init__(scope, construct_id, **kwargs)
 
-        stack = cdk.Stack.of(self)
+        cdk.Stack.of(self)
 
         #: lambda function containing the minecraft FastAPI application code
         fast_api_function: lambda_.Function = make_fast_api_function(

@@ -11,18 +11,15 @@ The Step Function will then be responsible for starting and stopping the server.
 """
 
 
+import json
 import os
-
-import boto3
-import requests
-from fastapi import FastAPI, APIRouter, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
-import json
+
+import boto3
+from fastapi import APIRouter, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 try:
     from mypy_boto3_stepfunctions.client import SFNClient
@@ -104,7 +101,7 @@ def create_app(
         title="Minecraft API",
         description="A FastAPI app for the Minecraft API.",
         version="0.1.0",
-        docs_url=f"/{ENVIRONMENT}/docs",
+        docs_url="/",
         redoc_url=None,
     )
     app.state.config: Config = config
