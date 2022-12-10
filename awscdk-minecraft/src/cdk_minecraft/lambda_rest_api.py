@@ -16,11 +16,10 @@ from constructs import Construct
 # API_SUBDOMAIN = "api.rootski.io"
 
 THIS_DIR = Path(__file__).parent
-# ROOTSKI_LAMBDA_CODE_DIR = THIS_DIR / "resources"
-LAMBDA_CODE_DIR = THIS_DIR / "../../../awscdk-minecraft-api"
+MINECRAFT_PAAS_BACKEND_API_DIR = THIS_DIR / "../../../awscdk-minecraft-api"
 
 
-class LambdaRestApiStack(cdk.Construct):
+class MinecraftPaaSRestApi(Construct):
     """An API Gateway mapping to a Lambda function with the backend code inside."""
 
     def __init__(
@@ -32,49 +31,47 @@ class LambdaRestApiStack(cdk.Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         #: lambda function containing the minecraft FastAPI application code
-        self.fast_api_function: lambda_.Function = self.make_fast_api_function()
+        self.fast_api_function: lambda_.Function = make_fast_api_function(
+            scope=self,
+            id_prefix=construct_id,
+        )
 
         #: API Gateway that proxies all incoming requests to the fast_api_function
 
         #: DNS rule routing the ``API_SUBDOMAIN`` to the rootski API Gateway
 
-    def make_fast_api_function(self) -> lambda_.Function:
-        fast_api_function = lambda_.Function(
-            self,
-            "Minecraft-FastAPI-Lambda",
-            timeout=cdk.Duration.seconds(30),
-            memory_size=512,
-            runtime=lambda_.Runtime.PYTHON_3_8,
-            handler="index.handler",
-            code=lambda_.Code.from_asset(
-                path=str(ROOTSKI_LAMBDA_CODE_DIR),
-                bundling=cdk.BundlingOptions(
-                    # learn about this here:
-                    # https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.aws_lambda/README.html#bundling-asset-code
-                    # Using this lambci image makes it so that dependencies with C-binaries compile correctly for the lambda runtime.
-                    # The AWS CDK python images were not doing this. Relevant dependencies are: pandas, asyncpg, and psycogp2-binary.
-                    image=cdk.DockerImage.from_registry(
-                        image="lambci/lambda:build-python3.8"),
-                    command=[
-                        "bash",
-                        "-c",
-                        "mkdir -p /asset-output"
-                        + "&& pip install -r ./aws-lambda/requirements.txt -t /asset-output"
-                        + "&& pip install . -t /asset-output"
-                        # TODO: Check that this works
-                        + "&& cp -r ./src/rootski/resources /asset-output/rootski/resources/"
-                        + "&& cp aws-lambda/index.py /asset-output"
-                        + "&& rm -rf /asset-output/boto3 /asset-output/botocore",
-                    ],
-                ),
-            ),
-            environment={
-                "ROOTSKI__FETCH_VALUES_FROM_AWS_SSM": "true",
-                "ROOTSKI__ENVIRONMENT": "prod",
-                # /tmp is the only writable location in the lambda file system
-                "ROOTSKI__STATIC_ASSETS_DIR": "/tmp",
-                "ROOTSKI__OBJECT_CACHE_BUCKET_NAME": morphemes_json_bucket.bucket_name,
-            },
-        )
 
-        return fast_api_function
+def make_fast_api_function(
+    scope: Construct,
+    id_prefix: str,
+) -> lambda_.Function:
+    fast_api_function = lambda_.Function(
+        scope,
+        id=f"{id_prefix}MinecraftPaaSRestApiLambda",
+        timeout=cdk.Duration.seconds(30),
+        memory_size=512,
+        runtime=lambda_.Runtime.PYTHON_3_8,
+        handler="index.handler",
+        code=lambda_.Code.from_asset(
+            path=str(MINECRAFT_PAAS_BACKEND_API_DIR),
+            bundling=cdk.BundlingOptions(
+                # learn about this here:
+                # https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.aws_lambda/README.html#bundling-asset-code
+                # Using this lambci image makes it so that dependencies with C-binaries compile correctly for the lambda runtime.
+                # The AWS CDK python images were not doing this. Relevant dependencies are: pandas, asyncpg, and psycogp2-binary.
+                image=cdk.DockerImage.from_registry(image="lambci/lambda:build-python3.8"),
+                command=[
+                    "bash",
+                    "-c",
+                    "mkdir -p /asset-output"
+                    # + "&& pip install -r ./aws-lambda/requirements.txt -t /asset-output"
+                    + "&& pip install .[lambda] --target /asset-output"
+                    + "&& cp ./aws-lambda/index.py /asset-output"
+                    # + "&& rm -rf /asset-output/boto3 /asset-output/botocore",
+                ],
+            ),
+        ),
+        environment={"DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": ""},
+    )
+
+    return fast_api_function

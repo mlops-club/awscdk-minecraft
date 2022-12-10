@@ -12,6 +12,7 @@ from cdk_minecraft.deploy_server_batch_job.job_definition import (
 from cdk_minecraft.deploy_server_batch_job.job_queue import BatchJobQueue
 from cdk_minecraft.deploy_server_batch_job.state_machine import ProvisionMinecraftServerStateMachine
 from constructs import Construct
+from cdk_minecraft.lambda_rest_api import MinecraftPaaSRestApi
 
 
 class MinecraftPaasStack(Stack):
@@ -54,6 +55,8 @@ class MinecraftPaasStack(Stack):
             deploy_or_destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
         )
 
+        MinecraftPaaSRestApi(scope=self, construct_id="MinecraftPaaSRestAPI")
+
         CfnOutput(
             self,
             id="MinecraftDeployerJobDefinitionArn",
@@ -78,37 +81,4 @@ class MinecraftPaasStack(Stack):
             self,
             id="StateMachineArn",
             value=mc_deployment_state_machine.state_machine.state_machine_arn,
-        )
-
-        # add lambda function
-        state_machine_lambda = _lambda.Function(
-            self,
-            "StateMachineLambda",
-            runtime=_lambda.Runtime.PYTHON_3_8,
-            code=_lambda.Code.asset("lambda"),
-            handler="state_machine_lambda.handler",
-            environment={
-                "STATE_MACHINE_ARN": mc_deployment_state_machine.state_machine.state_machine_arn,
-            },
-        )
-
-        # add an API Gateway endpoint to interact with the lambda function
-        rest_api = apigw.LambdaRestApi(
-            self,
-            "Endpoint",
-            handler=state_machine_lambda,
-        )
-
-        # add a CfnOutput to get the API Gateway endpoint URL
-        url = (f"https://{rest_api.rest_api_id}.execute-api.{self.region}.amazonaws.com/prod/",)
-        CfnOutput(
-            self,
-            "EndpointURL",
-            value=url,
-        )
-
-        # pass the endpoint of the state machine to the lambda
-        state_machine_lambda.add_environment(
-            "STATE_MACHINE_ARN",
-            mc_deployment_state_machine.state_machine.state_machine_arn,
         )

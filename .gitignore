@@ -17,3 +17,4 @@ metaflow-repos
 !.vscode/example-settings.json
 *.env
 *.idea
+*.egg-info

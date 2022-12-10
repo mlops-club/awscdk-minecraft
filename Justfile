@@ -63,9 +63,13 @@ cdk-destroy: #require-venv
         cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
 # generate CloudFormation from the code in "awscdk-minecraft"
-cdk-synth: require-venv login-to-aws
-    cd awscdk-minecraft \
-    && cdk synth --all --profile mlops-club --app "python3 app.py"
+cdk-synth: require-venv #login-to-aws
+    cd awscdk-minecraft && \
+        AWS_PROFILE={{AWS_PROFILE}} \
+        AWS_ACCOUNT_ID=$(just get-aws-account-id) \
+        CDK_DEFAULT_REGION={{AWS_REGION}} \
+        AWS_REGION={{AWS_REGION}} \
+        cdk synth --all --profile mlops-club --app "python3 app.py"
 
 open-aws:
     #!/bin/bash

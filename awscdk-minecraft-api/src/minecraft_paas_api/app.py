@@ -22,15 +22,15 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 
-def get_state_machine_endpoint():
-    """Read the state machine arn from the environment."""
-    client = boto3.client("stepfunctions")
-    state_machine = client.describe_state_machine(stateMachineArn=os.environ["STATE_MACHINE_ARN"])
-    endpoint = state_machine["stateMachineArn"]
-    return endpoint
+# def get_state_machine_endpoint():
+#     """Read the state machine arn from the environment."""
+#     client = boto3.client("stepfunctions")
+#     state_machine = client.describe_state_machine(stateMachineArn=os.environ["STATE_MACHINE_ARN"])
+#     endpoint = state_machine["stateMachineArn"]
+#     return endpoint
 
 
-ENDPOINT_URL = get_state_machine_endpoint()
+# ENDPOINT_URL = get_state_machine_endpoint()
 
 app = FastAPI(
     title="Minecraft API",
@@ -61,22 +61,22 @@ async def status():
     return JSONResponse(status_code=200)
 
 
-@app.get("/deploy")
-async def deploy():
-    """Start the server if it is not already running."""
-    data = {"command": "deploy"}
-    response = requests.post(ENDPOINT_URL, json=data)
-    if response.status_code != 200:
-        return JSONResponse(status_code=500)
-    return JSONResponse(status_code=200)
+# @app.get("/deploy")
+# async def deploy():
+#     """Start the server if it is not already running."""
+#     data = {"command": "deploy"}
+#     response = requests.post(ENDPOINT_URL, json=data)
+#     if response.status_code != 200:
+#         return JSONResponse(status_code=500)
+#     return JSONResponse(status_code=200)
 
 
-@app.get("/destroy")
-async def destroy():
-    """Stop the server if it is running."""
-    data = {"command": "destroy"}
-    # send to step function
-    response = requests.post(ENDPOINT_URL, json=data)
-    if response.status_code != 200:
-        return JSONResponse(status_code=500)
-    return JSONResponse(status_code=200)
+# @app.get("/destroy")
+# async def destroy():
+#     """Stop the server if it is running."""
+#     data = {"command": "destroy"}
+#     # send to step function
+#     response = requests.post(ENDPOINT_URL, json=data)
+#     if response.status_code != 200:
+#         return JSONResponse(status_code=500)
+#     return JSONResponse(status_code=200)
