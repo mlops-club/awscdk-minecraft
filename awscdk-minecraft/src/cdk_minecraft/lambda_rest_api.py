@@ -57,14 +57,39 @@ class MinecraftPaaSRestApi(Construct):
             value=self.rest_api.url,
         )
 
-        self.rest_api.root
-
 
 def make_fast_api_function(
     scope: Construct,
     id_prefix: str,
     provision_server_state_machine_arn: str,
 ) -> lambda_.Function:
+    """
+    Create a lambda function with the FastAPI app.
+
+    To prepare the python depencies for the lambda function, this stack
+    will essentially run the following command:
+
+    .. code:: bash
+
+        docker run \
+            --rm \
+            -v "path/to/awscdk-minecraft-api:/assets_input" \
+            -v "path/to/cdk.out/asset.<some hash>:/assets_output" \
+            lambci/lambda:build-python3.8 \
+            /bin/bash -c "... several commands to install the requirements to /assets_output ..."
+
+    The reason for using docker to install the requirements is because the "lambci/lambda:build-pythonX.X" image
+    uses the same underlying operating system as is used in the real AWS Lambda runtime. This means that
+    python packages that rely on compiled C/C++ binaries will be compiled correctly for the AWS Lambda runtime.
+    If we did not do it this way, packages such as pandas, numpy, psycopg2-binary, asyncpg, sqlalchemy, and others
+    relying on C/C++ bindings would not work when uploaded to lambda.
+
+    We use the ``lambci/*`` images instead of the images maintained by AWS CDK because the AWS CDK images
+    were failing to correctly install C/C++ based python packages. An extra benefit of using ``lambci/*`` over
+    the AWS CDK images is that the ``lambci/*`` images are in docker hub so they can be pulled without doing any
+    sort of ``docker login`` command before executing this script. The AWS CDK images are stored in public.ecr.aws
+    which requires a ``docker login`` command to be run first.
+    """
     fast_api_function = lambda_.Function(
         scope,
         id=f"{id_prefix}MinecraftPaaSRestApiLambda",

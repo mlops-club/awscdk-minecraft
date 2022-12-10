@@ -8,38 +8,29 @@ These tests require:
 
 2. Config
   - The ``rootski-config.yml`` file must be configured with the AWS Cognito values
-  
+
 3. The ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` env vars need to be set for an IAM user with admin access to the configured user pool
 """
 
-from pathlib import Path
 from pprint import pprint
 from typing import Tuple
 
 import boto3
 import pytest
 
-from rootski.config.config import YAML_CONFIG_PATH_ENV_VAR, Config
-from rootski.services.auth import AuthService
-from tests.constants import TEST_USER
-from tests.utils import scoped_env_vars
-
-THIS_DIR = Path(__file__).parent
-ROOTSKI_CONFIG_YAML_FPATH: Path = (
-    (THIS_DIR / ".." / ".." / ".." / "config" / "rootski-config.yml").resolve().absolute()
-)
-
-# the scope of this fixture must be session to match the jwt_id_token scope
-@pytest.fixture(scope="session")
-def config() -> Config:
-    with scoped_env_vars({YAML_CONFIG_PATH_ENV_VAR: str(ROOTSKI_CONFIG_YAML_FPATH)}):
-        config = Config()
-        yield config
+TEST_USER = {
+    "email": "test.user@minecraft-server-app.com",
+    "password": "UserPassw0rd1!",
+}
 
 
 @pytest.fixture(scope="session")
-def jwt_id_token(config: Config) -> str:
-    # create a real confirmed user in the Cognito User Pool
+def jwt_id_token() -> str:
+    """
+    Create and clean up a real user in an AWS Cognito User Pool.
+
+    :yield: a JWT token that can be used to make API requests on behalf of the user
+    """
     try:
         delete_cognito_user(user_pool_id=config.cognito_user_pool_id, email=TEST_USER["email"])
     except boto3.client("cognito-idp").exceptions.UserNotFoundException as e:
@@ -94,6 +85,12 @@ def confirm_user_email(user_pool_id: str, username: str):
 
 
 def sign_in_user(email: str, password: str, user_pool_id: str, app_client_id: str) -> Tuple[str, str, str]:
+    """
+    Acquire a set of authentication tokens on behalf of the given user.
+
+    :param app_client_id: ID of a Cognito application with suficient privileges to
+        execute the ADMIN_NO_SRP_AUTH auth flow.
+    """
     cognito_idp = boto3.client("cognito-idp")
 
     # This is less secure, but simpler
@@ -117,6 +114,7 @@ def sign_in_user(email: str, password: str, user_pool_id: str, app_client_id: st
 
 
 def delete_cognito_user(user_pool_id: str, email: str):
+    """Delete a user with the given email from the cognito user pool with the given ID."""
     cognito_idp = boto3.client("cognito-idp")
     cognito_idp.admin_delete_user(UserPoolId=user_pool_id, Username=email)
 

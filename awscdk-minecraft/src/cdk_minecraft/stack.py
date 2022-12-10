@@ -4,8 +4,7 @@
 # coginto imports, user pool and client
 # coginto imports, user pool and client
 # imports for lambda functions and API Gateway
-from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
-from aws_cdk import aws_apigateway as apigw
+from aws_cdk import CfnOutput, Duration, Stack
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
 from cdk_minecraft.deploy_server_batch_job.job_definition import (

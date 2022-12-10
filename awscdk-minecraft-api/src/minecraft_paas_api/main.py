@@ -14,7 +14,7 @@ The Step Function will then be responsible for starting and stopping the server.
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import List, Literal, Optional, TypedDict
 
 import boto3
 from fastapi import APIRouter, FastAPI, Request
@@ -34,8 +34,14 @@ STATE_MACHINE_ARN: str = os.environ.get("DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACH
 ROUTER = APIRouter()
 
 
-def trigger_state_machine(data: Dict[str, str]):
-    """Sends command to state machine.
+class ProvisionMinecraftServerPayload(TypedDict):
+    """Input format supported by the state machine that provisions/destroys the Minecraft server."""
+
+    command: Literal["create", "destroy"]
+
+
+def trigger_state_machine(payload: ProvisionMinecraftServerPayload) -> JSONResponse:
+    """Send command to state machine.
 
     Parameters
     ----------
@@ -51,7 +57,7 @@ def trigger_state_machine(data: Dict[str, str]):
     sfn_client: SFNClient = boto3.client("stepfunctions")
     start_exec: StartExecutionOutputTypeDef = sfn_client.start_execution(
         stateMachineArn=STATE_MACHINE_ARN,
-        input=json.dumps(data),
+        input=json.dumps(payload),
     )
     if start_exec["ResponseMetadata"]["HTTPStatusCode"] != 200:
         return JSONResponse(content="Failure!", status_code=500)
@@ -64,7 +70,7 @@ def trigger_state_machine(data: Dict[str, str]):
 
 @ROUTER.get("/status")
 async def status(request: Request):
-    """Return 200 if the server is alive."""
+    """Return 200 to demonstrate that this REST API is reachable and can execute."""
     # return all of request scope as a dictionary
     return str(request.scope.get("aws", "AWS key not present"))
 
@@ -85,11 +91,20 @@ async def destroy():
 
 @dataclass
 class Config:
+    """API settings that are defined at startup time."""
+
     allowed_cors_origins: List[str] = field(default_factory=lambda: [f"http://localhost:{DEV_PORT}"])
 
 
 @dataclass
 class Services:
+    """
+    Container for all ``Service``s used by the running application.
+
+    The ``Service`` abstraction should be used for any code that
+    makes calls over the network to services external to this API.
+    """
+
     ...
 
 
@@ -134,6 +149,12 @@ def create_app(
 
 
 def create_default_app() -> FastAPI:
+    """
+    Return an initialized FastAPI object using configuration from environment variables.
+
+    This is a factory method that can be used by WSGI/ASGI runners like gunicorn and uvicorn.
+    It is also useful for providing an application invokable by AWS Lambda.
+    """
     config = Config()
     return create_app(config=config)
 
