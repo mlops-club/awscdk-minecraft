@@ -13,8 +13,14 @@ from aws_cdk import aws_route53_targets as route53_targets
 from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
+# API_SUBDOMAIN = "api.rootski.io"
 
-class LambdaRestApiStack(cdk.Stack):
+THIS_DIR = Path(__file__).parent
+# ROOTSKI_LAMBDA_CODE_DIR = THIS_DIR / "resources"
+LAMBDA_CODE_DIR = THIS_DIR / "../../../awscdk-minecraft-api"
+
+
+class LambdaRestApiStack(cdk.Construct):
     """An API Gateway mapping to a Lambda function with the backend code inside."""
 
     def __init__(
