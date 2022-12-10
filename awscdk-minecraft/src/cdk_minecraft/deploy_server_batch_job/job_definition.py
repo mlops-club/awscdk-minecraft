@@ -9,7 +9,7 @@ from aws_cdk import aws_iam as iam
 from constructs import Construct
 
 THIS_DIR = Path(__file__).parent
-DOCKERIZED_AWS_CDK_BUILD_CONTEXT = (THIS_DIR / "../../../resources/awscdk-minecraft-server-deployer").resolve()
+DOCKERIZED_AWS_CDK_BUILD_CONTEXT = (THIS_DIR / "../../../../awscdk-minecraft-server-deployer").resolve()
 
 
 def make_minecraft_ec2_deployment__batch_job_definition(
