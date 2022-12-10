@@ -12,6 +12,8 @@ from aws_cdk import aws_route53 as route53
 from aws_cdk import aws_route53_targets as route53_targets
 from aws_cdk import aws_s3 as s3
 from constructs import Construct
+from aws_cdk import aws_apigateway as apigw
+from aws_cdk import CfnOutput
 
 # API_SUBDOMAIN = "api.rootski.io"
 
@@ -26,24 +28,41 @@ class MinecraftPaaSRestApi(Construct):
         self,
         scope: Construct,
         construct_id: str,
+        provision_server_state_machine_arn: str,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
 
+        stack = cdk.Stack.of(self)
+
         #: lambda function containing the minecraft FastAPI application code
-        self.fast_api_function: lambda_.Function = make_fast_api_function(
+        fast_api_function: lambda_.Function = make_fast_api_function(
             scope=self,
             id_prefix=construct_id,
+            provision_server_state_machine_arn=provision_server_state_machine_arn,
         )
 
-        #: API Gateway that proxies all incoming requests to the fast_api_function
+        self.role: iam.Role = fast_api_function.role
 
-        #: DNS rule routing the ``API_SUBDOMAIN`` to the rootski API Gateway
+        #: API Gateway that proxies all incoming requests to the fast_api_function
+        self.rest_api = apigw.LambdaRestApi(
+            scope=self,
+            id="Endpoint",
+            handler=fast_api_function,
+            proxy=True,
+        )
+
+        CfnOutput(
+            self,
+            "EndpointURL",
+            value=self.rest_api.url,
+        )
 
 
 def make_fast_api_function(
     scope: Construct,
     id_prefix: str,
+    provision_server_state_machine_arn: str,
 ) -> lambda_.Function:
     fast_api_function = lambda_.Function(
         scope,
@@ -71,7 +90,10 @@ def make_fast_api_function(
                 ],
             ),
         ),
-        environment={"DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": ""},
+        environment={
+            "DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": provision_server_state_machine_arn,
+            "ENVIRONMENT": "prod",
+        },
     )
 
     return fast_api_function

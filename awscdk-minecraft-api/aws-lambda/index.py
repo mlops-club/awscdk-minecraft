@@ -1,4 +1,7 @@
 from mangum import Mangum
-from minecraft_paas_api.app import app
+from fastapi import FastAPI
+from minecraft_paas_api.main import create_default_app
 
-handler = Mangum(app)
+
+APP: FastAPI = create_default_app()
+handler = Mangum(APP)
