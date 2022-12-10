@@ -5,6 +5,7 @@
 # coginto imports, user pool and client
 # imports for lambda functions and API Gateway
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
+from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
 from cdk_minecraft.deploy_server_batch_job.job_definition import (
@@ -92,12 +93,12 @@ class MinecraftPaasStack(Stack):
 
         # add an API Gateway endpoint to interact with the lambda function
         # and add an authorizer to the API Gateway
-        # cognito_service = MinecraftCognitoConstruct(scope=self, construct_id="MinecraftCognitoService")
-        # authorizer = apigw.CognitoUserPoolsAuthorizer(
-        #     scope=self,
-        #     id="CognitoAuthorizer",
-        #     cognito_user_pools=[cognito_service.user_pool],
-        # )
+        cognito_service = MinecraftCognitoConstruct(scope=self, construct_id="MinecraftCognitoService")
+        authorizer = apigw.CognitoUserPoolsAuthorizer(
+            scope=self,
+            id="CognitoAuthorizer",
+            cognito_user_pools=[cognito_service.user_pool],
+        )
 
         # pass the endpoint of the state machine to the lambda
 
@@ -155,7 +156,6 @@ class MinecraftCognitoConstruct(Construct):
             refresh_token_validity=Duration.days(1),
             prevent_user_existence_errors=True,
         )
-        self.client.apply_removal_policy(RemovalPolicy.DESTROY)
 
         # add a domain to the user pool
         self.domain = self.user_pool.add_domain(

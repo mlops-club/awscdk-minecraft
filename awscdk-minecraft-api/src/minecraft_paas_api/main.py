@@ -54,9 +54,9 @@ def trigger_state_machine(data: Dict[str, str]):
         input=json.dumps(data),
     )
     if start_exec["ResponseMetadata"]["HTTPStatusCode"] != 200:
-        return JSONResponse(status_code=500)
+        return JSONResponse(content="Failure!", status_code=500)
 
-    return JSONResponse(status_code=200)
+    return JSONResponse(content="Success!", status_code=200)
 
 
 @ROUTER.get("/status")
@@ -103,6 +103,7 @@ def create_app(
         version="0.1.0",
         docs_url="/",
         redoc_url=None,
+        openapi_prefix=f"/{ENVIRONMENT}",
     )
     app.state.config: Config = config
     app.state.services = Services()
