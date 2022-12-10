@@ -27,7 +27,7 @@ install: require-venv
     # # install git lfs for downloading rootski CSVs and other large files in the repo
     # git lfs install
 
-cdk-deploy: require-venv
+cdk-deploy: #require-venv
     cd ./awscdk-minecraft/ \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
@@ -40,7 +40,7 @@ cdk-deploy: require-venv
             --profile {{AWS_PROFILE}} \
             --require-approval any-change \
             --region {{AWS_REGION}} \
-            --app "python3 app.py"
+            --app "python app.py"
 
 cdk-diff: #require-venv
     cd ./awscdk-minecraft/ \
@@ -54,6 +54,7 @@ cdk-diff: #require-venv
             --region {{AWS_REGION}} \
             --app "python3 app.py"
 
+cdk-destroy: #require-venv
     cd awscdk-minecraft \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
