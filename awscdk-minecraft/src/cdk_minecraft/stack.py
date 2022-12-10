@@ -1,8 +1,11 @@
 """Boilerplate stack to make sure the CDK is set up correctly."""
 
 
+# imports for lambda functions and API Gateway
 from aws_cdk import CfnOutput, Stack
+from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_batch_alpha as batch_alpha
+from aws_cdk import aws_lambda as _lambda
 from cdk_minecraft.deploy_server_batch_job.job_definition import (
     make_minecraft_ec2_deployment__batch_job_definition,
 )
@@ -75,4 +78,37 @@ class MinecraftPaasStack(Stack):
             self,
             id="StateMachineArn",
             value=mc_deployment_state_machine.state_machine.state_machine_arn,
+        )
+
+        # add lambda function
+        state_machine_lambda = _lambda.Function(
+            self,
+            "StateMachineLambda",
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            code=_lambda.Code.asset("lambda"),
+            handler="state_machine_lambda.handler",
+            environment={
+                "STATE_MACHINE_ARN": mc_deployment_state_machine.state_machine.state_machine_arn,
+            },
+        )
+
+        # add an API Gateway endpoint to interact with the lambda function
+        rest_api = apigw.LambdaRestApi(
+            self,
+            "Endpoint",
+            handler=state_machine_lambda,
+        )
+
+        # add a CfnOutput to get the API Gateway endpoint URL
+        url = (f"https://{rest_api.rest_api_id}.execute-api.{self.region}.amazonaws.com/prod/",)
+        CfnOutput(
+            self,
+            "EndpointURL",
+            value=url,
+        )
+
+        # pass the endpoint of the state machine to the lambda
+        state_machine_lambda.add_environment(
+            "STATE_MACHINE_ARN",
+            mc_deployment_state_machine.state_machine.state_machine_arn,
         )
