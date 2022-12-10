@@ -3,8 +3,15 @@
 #
 # Execute any commands in this file by running "just <command name>", e.g. "just install".
 
+set dotenv-load := true
+
 AWS_PROFILE := "mlops-club"
 AWS_REGION := "us-west-2"
+
+CDK_PLATFORM_DIR := "awscdk-minecraft"
+CDK_DEPLOYER_DIR := "awscdk-minecraft-server-deployer"
+FRONTEND_DIR := "minecraft-platform-frontend"
+BACKEND_DIR := "minecraft-platform-backend-api"
 
 # install the project's python packages and other useful
 install: require-venv
@@ -21,14 +28,14 @@ install: require-venv
         flake8 \
         mypy
     # install the minecraft-deployment package as an "editable" package
-    python -m pip install -e awscdk-minecraft
+    python -m pip install -e {{CDK_PLATFORM_DIR}}[all]
     # install pre-commit hooks to protect the quality of code committed by contributors
     pre-commit install
     # # install git lfs for downloading rootski CSVs and other large files in the repo
     # git lfs install
 
 cdk-deploy: #require-venv
-    cd ./awscdk-minecraft/ \
+    cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
@@ -43,7 +50,7 @@ cdk-deploy: #require-venv
             --app "python app.py"
 
 cdk-diff: #require-venv
-    cd ./awscdk-minecraft/ \
+    cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
@@ -55,16 +62,16 @@ cdk-diff: #require-venv
             --app "python3 app.py"
 
 cdk-destroy: #require-venv
-    cd awscdk-minecraft \
+    cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=`just get-aws-account-id` \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
         cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
-# generate CloudFormation from the code in "awscdk-minecraft"
+# generate CloudFormation from the code in "{{CDK_PLATFORM_DIR}}"
 cdk-synth: require-venv #login-to-aws
-    cd awscdk-minecraft && \
+    cd {{CDK_PLATFORM_DIR}} && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
@@ -172,3 +179,33 @@ get-aws-account-id:
 # run quality checks and autoformatters against your code
 lint: require-venv
     pre-commit run --all-files
+
+
+build-python-package:
+    #!/bin/bash
+    cd {{CDK_PLATFORM_DIR}} \
+    && python -m pip install build \
+    && python -m build --wheel
+
+publish-python-package-test:
+    cd {{CDK_PLATFORM_DIR}} && \
+    twine upload \
+        --repository-url "https://test.pypi.org/legacy/" \
+        --username "$TEST_PYPI__TWINE_USERNAME" \
+        --password "$TEST_PYPI__TWINE_PASSWORD" \
+        --verbose \
+        dist/*
+
+publish-python-package-prod:
+    cd {{CDK_PLATFORM_DIR}} && \
+    twine upload \
+        --repository-url "https://upload.pypi.org/legacy/" \
+        --username "$TWINE_USERNAME" \
+        --password "$TWINE_PASSWORD" \
+        --verbose \
+        dist/*
+
+clean:
+    rm -rf dist/ build/
+
+release-to-pypi: clean build-python-package publish-python-package-test publish-python-package-prod
