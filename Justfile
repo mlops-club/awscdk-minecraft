@@ -27,7 +27,7 @@ install: require-venv
     # # install git lfs for downloading rootski CSVs and other large files in the repo
     # git lfs install
 
-cdk-deploy: require-venv
+cdk-deploy: #require-venv
     cd ./awscdk-minecraft/ \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
@@ -40,7 +40,7 @@ cdk-deploy: require-venv
             --profile {{AWS_PROFILE}} \
             --require-approval any-change \
             --region {{AWS_REGION}} \
-            --app "python3 app.py"
+            --app "python app.py"
 
 cdk-diff: #require-venv
     cd ./awscdk-minecraft/ \
@@ -54,6 +54,7 @@ cdk-diff: #require-venv
             --region {{AWS_REGION}} \
             --app "python3 app.py"
 
+cdk-destroy: #require-venv
     cd awscdk-minecraft \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
@@ -62,9 +63,13 @@ cdk-diff: #require-venv
         cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
 # generate CloudFormation from the code in "awscdk-minecraft"
-cdk-synth: require-venv login-to-aws
-    cd awscdk-minecraft \
-    && cdk synth --all --profile mlops-club --app "python3 app.py"
+cdk-synth: require-venv #login-to-aws
+    cd awscdk-minecraft && \
+        AWS_PROFILE={{AWS_PROFILE}} \
+        AWS_ACCOUNT_ID=$(just get-aws-account-id) \
+        CDK_DEFAULT_REGION={{AWS_REGION}} \
+        AWS_REGION={{AWS_REGION}} \
+        cdk synth --all --profile mlops-club --app "python3 app.py"
 
 open-aws:
     #!/bin/bash
