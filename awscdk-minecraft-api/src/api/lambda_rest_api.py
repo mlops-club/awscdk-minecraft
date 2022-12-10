@@ -28,10 +28,14 @@ class LambdaRestApiStack(cdk.Stack):
         #: lambda function containing the minecraft FastAPI application code
         self.fast_api_function: lambda_.Function = self.make_fast_api_function()
 
+        #: API Gateway that proxies all incoming requests to the fast_api_function
+
+        #: DNS rule routing the ``API_SUBDOMAIN`` to the rootski API Gateway
+
     def make_fast_api_function(self) -> lambda_.Function:
         fast_api_function = lambda_.Function(
             self,
-            "Rootski-FastAPI-Lambda",
+            "Minecraft-FastAPI-Lambda",
             timeout=cdk.Duration.seconds(30),
             memory_size=512,
             runtime=lambda_.Runtime.PYTHON_3_8,
