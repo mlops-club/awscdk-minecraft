@@ -1,0 +1,6 @@
+recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/src *
+# recursive-include src/ 
+
+graft src/cdk_minecraft/resources/
+graft src/cdk_minecraft/resources/awscdk-minecraft-server-deployer
+graft src/cdk_minecraft/resources/minecraft-platform-backend-api

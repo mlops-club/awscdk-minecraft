@@ -18,6 +18,7 @@ install: require-venv
     # install useful VS Code extensions
     which code && code --install-extension njpwerner.autodocstring || exit 0
     which code && code --install-extension kokakiwi.vscode-just || exit 0
+    cp .vscode/example-settings.json settings.json || echo ".vscode/settings.json already present"
     # install python packages not belonging to any particular package in this repo,
     # but important for development
     python -m pip install \
@@ -207,8 +208,8 @@ publish-python-package-test:
     cd {{CDK_PLATFORM_DIR}} && \
     twine upload \
         --repository-url "https://test.pypi.org/legacy/" \
-        --username "$TEST_PYPI__TWINE_USERNAME" \
-        --password "$TEST_PYPI__TWINE_PASSWORD" \
+        --username "${TEST_PYPI__TWINE_USERNAME}" \
+        --password "${TEST_PYPI__TWINE_PASSWORD}" \
         --verbose \
         dist/*
 
@@ -216,8 +217,8 @@ publish-python-package-prod:
     cd {{CDK_PLATFORM_DIR}} && \
     twine upload \
         --repository-url "https://upload.pypi.org/legacy/" \
-        --username "$TWINE_USERNAME" \
-        --password "$TWINE_PASSWORD" \
+        --username "${TWINE_USERNAME}" \
+        --password "${TWINE_PASSWORD}" \
         --verbose \
         dist/*
 
@@ -225,6 +226,7 @@ clean:
     rm -rf ./dist/       **/dist/             || echo "no matches found for **/dist/"
     rm -rf .projen/      **/.projen/          || echo "no matches found for **/.projen/"
     rm -rf ./build/      **/build/            || echo "no matches found for **/build/"
+    rm -rf ./build_/      **/build_/          || echo "no matches found for **/build/"
     rm -rf ./cdk.out/    **/cdk.out/          || echo "no matches found for **/cdk.out/"
     rm -rf ./.DS_Store/  **/.DS_Store         || echo "no matches found for **/.DS_Store"
     rm -rf ./.mypy_cache/ **/.mypy_cache      || echo "no matches found for **/.mypy_cache"
