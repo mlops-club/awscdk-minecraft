@@ -1,18 +1,16 @@
 """Stack defining an API Gateway mapping to a Lambda function with the FastAPI app."""
 
-from pathlib import Path
 
 import aws_cdk as cdk
 from aws_cdk import CfnOutput
 from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as lambda_
+from cdk_minecraft.constants import MINECRAFT_PLATFORM_BACKEND_API__DIR
 from constructs import Construct
 
 # API_SUBDOMAIN = "api.rootski.io"
 
-THIS_DIR = Path(__file__).parent
-MINECRAFT_PAAS_BACKEND_API_DIR = THIS_DIR / "../../../minecraft-platform-backend-api"
 
 
 class MinecraftPaaSRestApi(Construct):
@@ -98,7 +96,7 @@ def make_fast_api_function(
         runtime=lambda_.Runtime.PYTHON_3_8,
         handler="index.handler",
         code=lambda_.Code.from_asset(
-            path=str(MINECRAFT_PAAS_BACKEND_API_DIR),
+            path=str(MINECRAFT_PLATFORM_BACKEND_API__DIR),
             bundling=cdk.BundlingOptions(
                 # learn about this here:
                 # https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.aws_lambda/README.html#bundling-asset-code
