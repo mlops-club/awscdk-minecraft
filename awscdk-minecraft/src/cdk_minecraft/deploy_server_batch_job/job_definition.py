@@ -1,15 +1,12 @@
 """Job definition for the batch job that will deploy the Minecraft server on EC2."""
-from pathlib import Path
 
 from aws_cdk import Stack
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_ecr_assets as ecr_assets
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_iam as iam
+from cdk_minecraft.constants import AWSCDK_MINECRAFT_SERVER_DEPLOYER__DIR
 from constructs import Construct
-
-THIS_DIR = Path(__file__).parent
-DOCKERIZED_AWS_CDK_BUILD_CONTEXT = (THIS_DIR / "../../../../awscdk-minecraft-server-deployer").resolve()
 
 
 def make_minecraft_ec2_deployment__batch_job_definition(
@@ -40,7 +37,7 @@ def make_minecraft_ec2_deployment__batch_job_definition(
         id=f"{id_prefix}CdkMinecraftEc2DeploymentJD",
         container=batch_alpha.JobDefinitionContainer(
             image=ecs.ContainerImage.from_asset(
-                directory=str(DOCKERIZED_AWS_CDK_BUILD_CONTEXT),
+                directory=str(AWSCDK_MINECRAFT_SERVER_DEPLOYER__DIR),
                 platform=ecr_assets.Platform.LINUX_AMD64,
             ),
             command=["cdk", "deploy", "--app", "'python3 /app/app.py'", "--require-approval=never"],

@@ -181,11 +181,27 @@ lint: require-venv
     pre-commit run --all-files
 
 
-build-python-package:
+build-python-package: clean
     #!/bin/bash
-    cd {{CDK_PLATFORM_DIR}} \
-    && python -m pip install build \
-    && python -m build --wheel
+
+    export BUILD_DIR="build_/{{CDK_PLATFORM_DIR}}"
+    mkdir -p "${BUILD_DIR}"
+
+    # 'cp -r' copies the actual contents of symlinks, so after this
+    # command is run, the copied folder won't have any symlinks, but
+    # real copies of the files.
+    cp -r "{{CDK_PLATFORM_DIR}}/src" "$BUILD_DIR/"
+    cp "{{CDK_PLATFORM_DIR}}/setup.cfg" "$BUILD_DIR/"
+    cp "{{CDK_PLATFORM_DIR}}/setup.py" "$BUILD_DIR/"
+    cp "{{CDK_PLATFORM_DIR}}/pyproject.toml" "$BUILD_DIR/"
+
+    python -m pip install build
+    cd "${BUILD_DIR}" && echo `pwd` && \
+        python -m build --wheel
+
+    cd ../../
+    mv ${BUILD_DIR}/build/ .
+    mv ${BUILD_DIR}/dist/ .
 
 publish-python-package-test:
     cd {{CDK_PLATFORM_DIR}} && \
@@ -206,6 +222,19 @@ publish-python-package-prod:
         dist/*
 
 clean:
-    rm -rf dist/ build/
+    rm -rf ./dist/       **/dist/             || echo "no matches found for **/dist/"
+    rm -rf .projen/      **/.projen/          || echo "no matches found for **/.projen/"
+    rm -rf ./build/      **/build/            || echo "no matches found for **/build/"
+    rm -rf ./cdk.out/    **/cdk.out/          || echo "no matches found for **/cdk.out/"
+    rm -rf ./.DS_Store/  **/.DS_Store         || echo "no matches found for **/.DS_Store"
+    rm -rf ./.mypy_cache/ **/.mypy_cache      || echo "no matches found for **/.mypy_cache"
+    rm -rf ./.pytest_cache/ **/.pytest_cache  || echo "no matches found for **/*.pytest_cache"
+    rm -rf ./test ||/ **/test                 || echo "no matches found for **/test"
+    rm -rf ./.coverage/  **/.coverage         || echo "no matches found for **/.coverage"
+    rm -rf ./.ipynb_checkpoints/ **/.ipynb_checkpoints || echo "no matches found for **/.ipynb_checkpoints"
+    rm -rf ./.pyc/       **/*.pyc             || echo "no matches found for **/*.pyc"
+    rm -rf ./__pycache__/ **/__pycache__      || echo "no matches found for **/__pycache__"
+    rm -rf ./*.egg-info/ **/*.egg-info        || echo "no matches found for **/*.egg-info"
+    rm cdk.context.json  **/*cdk.context.json || echo "no matches found for cdk.context.json"
 
 release-to-pypi: clean build-python-package publish-python-package-test publish-python-package-prod
