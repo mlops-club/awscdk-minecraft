@@ -1,6 +1,20 @@
-recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/src *
-# recursive-include src/ 
+# This file is a registry of all files that are placed in the final pip-installable awscdk-minecraft package.
+#
+# The further down a statement, the higher the priority. Statements override statements above them.
+# A summary of the syntax in this file can be found here: https://packaging.python.org/en/latest/guides/using-manifest-in/
 
-graft src/cdk_minecraft/resources/
-graft src/cdk_minecraft/resources/awscdk-minecraft-server-deployer
-graft src/cdk_minecraft/resources/minecraft-platform-backend-api
+# backend fastapi app
+recursive-include src/cdk_minecraft/resources/minecraft-platform-backend-api/ *.md
+recursive-include src/cdk_minecraft/resources/minecraft-platform-backend-api/ setup.cfg setup.py pyproject.toml
+recursive-include src/cdk_minecraft/resources/minecraft-platform-backend-api/resources/ *
+recursive-include src/cdk_minecraft/resources/minecraft-platform-backend-api/src/ *
+
+# server deployer aws cdk app
+recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/ *.md
+recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/ *.sh
+recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/ setup.cfg setup.py pyproject.toml
+recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/resources/ *
+recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/src/ *
+
+global-exclude *.egg-info
+global-exclude *.pyc
