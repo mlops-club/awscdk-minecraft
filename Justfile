@@ -9,8 +9,9 @@ AWS_REGION := "us-west-2"
 # install the project's python packages and other useful
 install: require-venv
     # install useful VS Code extensions
-    which code && code --install-extension njpwerner.autodocstring || exit 0
-    which code && code --install-extension kokakiwi.vscode-just || exit 0
+    which code && code --install-extension njpwerner.autodocstring || echo "skipping install of autodocstring"
+    which code && code --install-extension kokakiwi.vscode-just || echo "skipping install of vscode-just"
+    cp .vscode/example-settings.json settings.json || echo ".vscode/settings.json already present"
     # install python packages not belonging to any particular package in this repo,
     # but important for development
     python -m pip install \
