@@ -1,5 +1,31 @@
 # 📣 Welcome to the December 2022 Minecraft Hackathon
 
+The goal of this project is to make a single pip-installable package that allows anyone
+to provision an entire, *cheap*, Minecraft-server-hosting Platform as a Service to their
+personal AWS account.
+
+Contributors can expect to come away with an enviable amount of real-world cloud architecture
+experience :D
+
+```bash
+pip install awscdk-minecraft
+```
+
+The project has 4 components.
+
+1. `awscdk-minecraft/` the Python package. Uses AWS CDK to create the infrastructure.
+   The other folders in this repository are artifacts that this package includes (and deploys!).
+2. `minecraft-platform-frontend/` a React/TypeScript website where users can start/stop a Minecraft server.
+   The `awscdk-minecraft` package deploys this as a static website in an S3 bucket.
+3. `minecraft-platform-backend-api/` a REST API written with the FastAPI framework that facilitates
+   the functionality exposed in the frontend. The `awscdk-minecraft` package deploys this API
+   as in a serverless way using AWS Lambda, API Gateway, and Cognito.
+4. `awscdk-minecraft-server-deployer/` another AWS CDK package. This package is specifically responsible
+   for creating and destroying an EC2 instance with the Minecraft server application running on it.
+   This package itself is built into a Docker image. The `awscdk-minecraft` package
+   builds the Docker image with this package inside. Then, when users ask the `minecraft-platform-backend-api`
+   to create or destroy a Minecraft server. The REST API runs an instance of this Docker image
+   which actually carries out the request.
 
 ## Contributing
 

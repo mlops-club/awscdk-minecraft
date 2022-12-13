@@ -3,8 +3,15 @@
 #
 # Execute any commands in this file by running "just <command name>", e.g. "just install".
 
+set dotenv-load := true
+
 AWS_PROFILE := "mlops-club"
 AWS_REGION := "us-west-2"
+
+CDK_PLATFORM_DIR := "awscdk-minecraft"
+CDK_DEPLOYER_DIR := "awscdk-minecraft-server-deployer"
+FRONTEND_DIR := "minecraft-platform-frontend"
+BACKEND_DIR := "minecraft-platform-backend-api"
 
 # install the project's python packages and other useful
 install: require-venv
@@ -22,14 +29,14 @@ install: require-venv
         flake8 \
         mypy
     # install the minecraft-deployment package as an "editable" package
-    python -m pip install -e awscdk-minecraft
+    python -m pip install -e {{CDK_PLATFORM_DIR}}[all]
     # install pre-commit hooks to protect the quality of code committed by contributors
     pre-commit install
     # # install git lfs for downloading rootski CSVs and other large files in the repo
     # git lfs install
 
 cdk-deploy: #require-venv
-    cd ./awscdk-minecraft/ \
+    cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
@@ -44,7 +51,7 @@ cdk-deploy: #require-venv
             --app "python app.py"
 
 cdk-diff: #require-venv
-    cd ./awscdk-minecraft/ \
+    cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
@@ -56,16 +63,16 @@ cdk-diff: #require-venv
             --app "python3 app.py"
 
 cdk-destroy: #require-venv
-    cd awscdk-minecraft \
+    cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=`just get-aws-account-id` \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
         cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
-# generate CloudFormation from the code in "awscdk-minecraft"
+# generate CloudFormation from the code in "{{CDK_PLATFORM_DIR}}"
 cdk-synth: require-venv #login-to-aws
-    cd awscdk-minecraft && \
+    cd {{CDK_PLATFORM_DIR}} && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
         CDK_DEFAULT_REGION={{AWS_REGION}} \
@@ -173,3 +180,62 @@ get-aws-account-id:
 # run quality checks and autoformatters against your code
 lint: require-venv
     pre-commit run --all-files
+
+
+build-python-package: clean
+    #!/bin/bash
+
+    export BUILD_DIR="build_/{{CDK_PLATFORM_DIR}}"
+    mkdir -p "${BUILD_DIR}"
+
+    # 'cp -r' copies the actual contents of symlinks, so after this
+    # command is run, the copied folder won't have any symlinks, but
+    # real copies of the files.
+    cp -r "{{CDK_PLATFORM_DIR}}/src" "$BUILD_DIR/"
+    cp "{{CDK_PLATFORM_DIR}}/setup.cfg" "$BUILD_DIR/"
+    cp "{{CDK_PLATFORM_DIR}}/setup.py" "$BUILD_DIR/"
+    cp "{{CDK_PLATFORM_DIR}}/pyproject.toml" "$BUILD_DIR/"
+
+    python -m pip install build
+    cd "${BUILD_DIR}" && echo `pwd` && \
+        python -m build --wheel
+
+    cd ../../
+    mv ${BUILD_DIR}/build/ .
+    mv ${BUILD_DIR}/dist/ .
+
+publish-python-package-test:
+    cd {{CDK_PLATFORM_DIR}} && \
+    twine upload \
+        --repository-url "https://test.pypi.org/legacy/" \
+        --username "$TEST_PYPI__TWINE_USERNAME" \
+        --password "$TEST_PYPI__TWINE_PASSWORD" \
+        --verbose \
+        dist/*
+
+publish-python-package-prod:
+    cd {{CDK_PLATFORM_DIR}} && \
+    twine upload \
+        --repository-url "https://upload.pypi.org/legacy/" \
+        --username "$TWINE_USERNAME" \
+        --password "$TWINE_PASSWORD" \
+        --verbose \
+        dist/*
+
+clean:
+    rm -rf ./dist/       **/dist/             || echo "no matches found for **/dist/"
+    rm -rf .projen/      **/.projen/          || echo "no matches found for **/.projen/"
+    rm -rf ./build/      **/build/            || echo "no matches found for **/build/"
+    rm -rf ./cdk.out/    **/cdk.out/          || echo "no matches found for **/cdk.out/"
+    rm -rf ./.DS_Store/  **/.DS_Store         || echo "no matches found for **/.DS_Store"
+    rm -rf ./.mypy_cache/ **/.mypy_cache      || echo "no matches found for **/.mypy_cache"
+    rm -rf ./.pytest_cache/ **/.pytest_cache  || echo "no matches found for **/*.pytest_cache"
+    rm -rf ./test ||/ **/test                 || echo "no matches found for **/test"
+    rm -rf ./.coverage/  **/.coverage         || echo "no matches found for **/.coverage"
+    rm -rf ./.ipynb_checkpoints/ **/.ipynb_checkpoints || echo "no matches found for **/.ipynb_checkpoints"
+    rm -rf ./.pyc/       **/*.pyc             || echo "no matches found for **/*.pyc"
+    rm -rf ./__pycache__/ **/__pycache__      || echo "no matches found for **/__pycache__"
+    rm -rf ./*.egg-info/ **/*.egg-info        || echo "no matches found for **/*.egg-info"
+    rm cdk.context.json  **/*cdk.context.json || echo "no matches found for cdk.context.json"
+
+release-to-pypi: clean build-python-package publish-python-package-test publish-python-package-prod
