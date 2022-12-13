@@ -16,5 +16,8 @@ recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/ 
 recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/resources/ *
 recursive-include src/cdk_minecraft/resources/awscdk-minecraft-server-deployer/src/ *
 
+# static web files generated from the frontend project
+recursive-include src/cdk_minecraft/resources/minecraft-platform-frontend-static/ *
+
 global-exclude *.egg-info
 global-exclude *.pyc

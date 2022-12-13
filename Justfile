@@ -185,6 +185,9 @@ get-aws-account-id:
 lint: require-venv
     pre-commit run --all-files
 
+# Create a pip-installable package for this project that can be published to PyPI.
+# Gather all necessary source files and build artifacts such as the frontend website
+# to include in the final package binary.
 build-python-package: clean
     #!/bin/bash
 
