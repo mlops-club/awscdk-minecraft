@@ -12,6 +12,7 @@ from cdk_minecraft.deploy_server_batch_job.job_definition import (
 )
 from cdk_minecraft.deploy_server_batch_job.job_queue import BatchJobQueue
 from cdk_minecraft.deploy_server_batch_job.state_machine import ProvisionMinecraftServerStateMachine
+from cdk_minecraft.frontend import make_minecraft_platform_frontend_static_website
 from cdk_minecraft.lambda_rest_api import MinecraftPaaSRestApi
 from constructs import Construct
 
@@ -36,6 +37,11 @@ class MinecraftPaasStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        make_minecraft_platform_frontend_static_website(
+            scope=self,
+            id_prefix=construct_id,
+        )
 
         job_queue: batch_alpha.JobQueue = BatchJobQueue(
             scope=self,
