@@ -1,18 +1,24 @@
 """Boilerplate stack to make sure the CDK is set up correctly."""
 
 
+from typing import List
+
 # coginto imports, user pool and client
 # coginto imports, user pool and client
 # imports for lambda functions and API Gateway
 from aws_cdk import CfnOutput, Duration, Stack
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
+from aws_prototyping_sdk.static_website import StaticWebsite
 from cdk_minecraft.deploy_server_batch_job.job_definition import (
     make_minecraft_ec2_deployment__batch_job_definition,
 )
 from cdk_minecraft.deploy_server_batch_job.job_queue import BatchJobQueue
 from cdk_minecraft.deploy_server_batch_job.state_machine import ProvisionMinecraftServerStateMachine
-from cdk_minecraft.frontend import make_minecraft_platform_frontend_static_website
+from cdk_minecraft.frontend import (
+    create_config_json_file_in_static_site_s3_bucket,
+    make_minecraft_platform_frontend_static_website,
+)
 from cdk_minecraft.lambda_rest_api import MinecraftPaaSRestApi
 from constructs import Construct
 
@@ -38,11 +44,6 @@ class MinecraftPaasStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        make_minecraft_platform_frontend_static_website(
-            scope=self,
-            id_prefix=construct_id,
-        )
-
         job_queue: batch_alpha.JobQueue = BatchJobQueue(
             scope=self,
             construct_id="CdkDockerBatchEnv",
@@ -62,8 +63,16 @@ class MinecraftPaasStack(Stack):
             deploy_or_destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
         )
 
+        frontend_static_site: StaticWebsite = make_minecraft_platform_frontend_static_website(
+            scope=self,
+            id_prefix=construct_id,
+        )
+        frontend_url = f"https://{frontend_static_site.cloud_front_distribution.domain_name}"
+
         # add an API Gateway endpoint to interact with the lambda function
-        # cognito_service = MinecraftCognitoConstruct(scope=self, construct_id="MinecraftCognitoService")
+        cognito_service = MinecraftCognitoConstruct(
+            scope=self, construct_id="MinecraftCognitoService", frontend_url=frontend_url
+        )
         # authorizer = apigw.CognitoUserPoolsAuthorizer(
         #     scope=self,
         #     id="CognitoAuthorizer",
@@ -80,6 +89,31 @@ class MinecraftPaasStack(Stack):
         # add role to lambda to allow it to start the state machine
         mc_deployment_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
 
+        create_config_json_file_in_static_site_s3_bucket(
+            scope=self,
+            id_prefix=construct_id,
+            backend_url=mc_rest_api.rest_api.url,
+            cognito_app_client_id=cognito_service.client.user_pool_client_id,
+            cognito_hosted_ui_app_client_allowed_scopes=cognito_service.allowed_oauth_scopes,
+            cognito_user_pool_id=cognito_service.user_pool.user_pool_id,
+            static_site_bucket=frontend_static_site.website_bucket,
+            static_site_construct=frontend_static_site,
+            cognito_user_pool_region=Stack.of(cognito_service.user_pool).region,
+            cognito_hosted_ui_redirect_sign_in_url=frontend_url,
+            cognito_hosted_ui_redirect_sign_out_url=frontend_url,
+            cognito_hosted_ui_fqdn=cognito_service.fully_qualified_domain_name,
+        )
+
+        CfnOutput(
+            scope=self,
+            id="FrontendUrl",
+            value=frontend_url,
+        )
+        CfnOutput(
+            scope=self,
+            id="FrontendStaticSiteBucketName",
+            value=frontend_static_site.website_bucket.bucket_name,
+        )
         CfnOutput(
             scope=self,
             id="MinecraftDeployerJobDefinitionArn",
@@ -116,8 +150,8 @@ class MinecraftPaasStack(Stack):
 class MinecraftCognitoConstruct(Construct):
     """Class to create authentication for the Minecraft PaaS."""
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
-        super().__init__(scope, construct_id, **kwargs)
+    def __init__(self, scope: Construct, construct_id: str, frontend_url: str) -> None:
+        super().__init__(scope, construct_id)
 
         # create a user pool, do not allow users to sign up themselves.
         # https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_cognito/UserPool.html
@@ -145,6 +179,12 @@ class MinecraftCognitoConstruct(Construct):
 
         # add a client to the user pool, handle JWT tokens
         # https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_cognito/UserPoolClient.html
+        allowed_oauth_scopes = [
+            cognito.OAuthScope.EMAIL,
+            cognito.OAuthScope.OPENID,
+            cognito.OAuthScope.PROFILE,
+            cognito.OAuthScope.COGNITO_ADMIN,
+        ]
         self.client = self.user_pool.add_client(
             "MinecraftUserPoolClient",
             user_pool_client_name="MinecraftUserPoolClient",
@@ -152,15 +192,18 @@ class MinecraftCognitoConstruct(Construct):
             auth_flows=cognito.AuthFlow(user_password=True, user_srp=True, admin_user_password=True),
             o_auth=cognito.OAuthSettings(
                 flows=cognito.OAuthFlows(authorization_code_grant=True, implicit_code_grant=True),
-                scopes=[cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID],
-                callback_urls=["https://localhost:3000"],
-                logout_urls=["https://localhost:3000"],
+                scopes=allowed_oauth_scopes,
+                callback_urls=["http://localhost:3000", frontend_url],
+                logout_urls=["http://localhost:3000", frontend_url],
             ),
             id_token_validity=Duration.days(1),
             access_token_validity=Duration.days(1),
             refresh_token_validity=Duration.days(1),
             prevent_user_existence_errors=True,
         )
+
+        self.allowed_oauth_scopes: List[str] = [scope.scope_name for scope in allowed_oauth_scopes]
+
         read_scope = cognito.ResourceServerScope(
             scope_name="minecraft.read", scope_description="minecraft read scope"
         )
@@ -182,8 +225,8 @@ class MinecraftCognitoConstruct(Construct):
             o_auth=cognito.OAuthSettings(
                 flows=cognito.OAuthFlows(client_credentials=True),
                 scopes=[client_read_scope],
-                callback_urls=["https://localhost:3000"],
-                logout_urls=["https://localhost:3000"],
+                callback_urls=["https://localhost:3000", frontend_url],
+                logout_urls=["https://localhost:3000", frontend_url],
             ),
             id_token_validity=Duration.days(1),
             access_token_validity=Duration.days(1),
@@ -196,6 +239,8 @@ class MinecraftCognitoConstruct(Construct):
             id="MinecraftUserPoolDomain",
             cognito_domain=cognito.CognitoDomainOptions(domain_prefix="minecraft-user-pool"),
         )
+
+        self.fully_qualified_domain_name = f"{self.domain.domain_name}.auth.{scope.region}.amazoncognito.com"
 
         # add a CfnOutput to get the user pool domain
         CfnOutput(
