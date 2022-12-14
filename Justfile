@@ -220,8 +220,8 @@ build-python-package: clean
     mv ${BUILD_DIR}/build/ .
     mv ${BUILD_DIR}/dist/ .
 
+
 publish-python-package-test:
-    cd {{CDK_PLATFORM_DIR}} && \
     twine upload \
         --repository-url "https://test.pypi.org/legacy/" \
         --username "${TEST_PYPI__TWINE_USERNAME}" \
@@ -230,7 +230,6 @@ publish-python-package-test:
         dist/*
 
 publish-python-package-prod:
-    cd {{CDK_PLATFORM_DIR}} && \
     twine upload \
         --repository-url "https://upload.pypi.org/legacy/" \
         --username "${TWINE_USERNAME}" \
