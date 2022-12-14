@@ -1,0 +1,15 @@
+{
+    "backend_api_url": "https://i5w46x04gk.execute-api.us-west-2.amazonaws.com/prod/",
+    "cognito_user_pool_id": "us-west-2_vtfkVUVIc",
+    "cognito_hosted_ui_app_client_id": "36s17sl59n6otjvadv33ctcaug",
+    "cognito_hosted_ui_app_client_allowed_scopes": [
+        "email",
+        "openid",
+        "profile",
+        "aws.cognito.signin.user.admin"
+    ],
+    "cognito_hosted_ui_fqdn": "minecraft-user-pool.auth.us-west-2.amazoncognito.com",
+    "cognito_user_pool_region": "us-west-2",
+    "cognito_hosted_ui_redirect_sign_in_url": "http://localhost:3000",
+    "cognito_hosted_ui_redirect_sign_out_url": "http://localhost:3000"
+}
