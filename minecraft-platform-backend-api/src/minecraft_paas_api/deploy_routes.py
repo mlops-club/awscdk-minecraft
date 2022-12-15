@@ -52,19 +52,15 @@ def trigger_state_machine(payload: ProvisionMinecraftServerPayload, state_machin
 
 
 @ROUTER.get("/deploy")
-async def deploy(num_runs: int):
+async def deploy():
     """Start the server if it is not already running."""
     data = {"command": "deploy"}
-    for i in range(num_runs):
-        print(f"Triggering {i}")
-        trigger_state_machine({"command": "deploy"}, state_machine_arn)
-        sleep(1)
-    return trigger_state_machine(data)
+    return trigger_state_machine(payload=data, state_machine_arn=state_machine_arn)
 
 
 @ROUTER.get("/destroy")
 async def destroy():
     """Stop the server if it is running."""
     data = {"command": "destroy"}
-    return trigger_state_machine(data)
+    return trigger_state_machine(payload=data, state_machine_arn=state_machine_arn)
 

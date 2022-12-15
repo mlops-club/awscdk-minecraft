@@ -53,12 +53,16 @@ def get_latest_statemachine_execution(state_machine_arn: str) -> Optional[Execut
         stateMachineArn=state_machine_arn,
         maxResults=10,
     )
-
     executions: List[ExecutionListItemTypeDef] = sorted(response['executions'], key=lambda x: x["startDate"], reverse=True)
     latest_execution: ExecutionListItemTypeDef = executions[0] if len(executions) > 0 else None
     return latest_execution
 
 
-@ROUTER.get("/state-machine-status")
+@ROUTER.get("/latest-execution")
 def get_statemachine():
     return get_latest_statemachine_execution(state_machine_arn=state_machine_arn)
+
+
+@ROUTER.get("/state-machine-status")
+def get_statemachine():
+    return describe_state_machine(state_machine_arn=state_machine_arn)
