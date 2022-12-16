@@ -13,32 +13,69 @@ The Step Function will then be responsible for starting and stopping the server.
 
 import json
 import os
-from dataclasses import dataclass, field
-from typing import List, Literal, Optional, TypedDict
+from dataclasses import dataclass
+from typing import Literal, Optional, TypedDict
 
+import boto3
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTER
+from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTER
+from minecraft_paas_api.settings import Settings
 
-from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTES
-from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTES
+try:
+    from mypy_boto3_stepfunctions.client import SFNClient
+    from mypy_boto3_stepfunctions.type_defs import StartExecutionOutputTypeDef
+except ImportError:
+    print("Warning: boto3-stubs[stepfunctions] not installed")
+
 
 ENVIRONMENT: str = os.environ.get("ENVIRONMENT", "dev")
 DEV_PORT: int = int(os.environ.get("PORT", "8000"))
 STATE_MACHINE_ARN: str = os.environ.get("DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN")
 ROUTER = APIRouter()
 
+
+class ProvisionMinecraftServerPayload(TypedDict):
+    """Input format supported by the state machine that provisions/destroys the Minecraft server."""
+
+    command: Literal["create", "destroy"]
+
+
+def trigger_state_machine(payload: ProvisionMinecraftServerPayload) -> JSONResponse:
+    """Send command to state machine.
+
+    Parameters
+    ----------
+    data : dict
+        A dictionary with a single key "command" which will be either "deploy" or "destroy".
+
+    Returns
+    -------
+    JSONResponse
+        A JSON response with a status code of 200 if the state machine was triggered successfully.
+        A JSON response with a status code of 500 if the state machine was not triggered successfully.
+    """
+    sfn_client: SFNClient = boto3.client("stepfunctions")
+    start_exec: StartExecutionOutputTypeDef = sfn_client.start_execution(
+        stateMachineArn=STATE_MACHINE_ARN,
+        input=json.dumps(payload),
+    )
+    if start_exec["ResponseMetadata"]["HTTPStatusCode"] != 200:
+        return JSONResponse(content="Failure!", status_code=500)
+
+    # get status of state machine
+    # status = sfn_client.describe_execution(executionArn=start_exec["executionArn"])
+    # return JSONResponse(content="Success! {status}", status_code=200)
+    return JSONResponse(content="Success!", status_code=200)
+
+
 @ROUTER.get("/status")
 async def status(request: Request):
     """Return 200 to demonstrate that this REST API is reachable and can execute."""
     # return all of request scope as a dictionary
     return str(request.scope.get("aws", "AWS key not present"))
-
-
-@dataclass
-class Config:
-    """API settings that are defined at startup time."""
-
-    allowed_cors_origins: List[str] = field(default_factory=lambda: [f"http://localhost:{DEV_PORT}"])
 
 
 @dataclass
@@ -54,22 +91,21 @@ class Services:
 
 
 def create_app(
-    config: Optional[Config] = None,
+    settings: Optional[Settings] = None,
 ) -> FastAPI:
 
-    if not config:
-        config = Config()
+    if not settings:
+        settings = Settings()
 
     app = FastAPI(
         title="Minecraft API",
         description="A FastAPI app for the Minecraft API.",
         version="0.0.1",
         docs_url="/",
-        openapi_url=f"/openapi.json",
         redoc_url=None,
-        # openapi_prefix=f"/{ENVIRONMENT}",
+        openapi_prefix=f"/{ENVIRONMENT}",
     )
-    app.state.config: Config = config
+    app.state.settings: Settings = settings
     app.state.services = Services()
 
     # configure startup behavior: initialize services on startup
@@ -80,14 +116,14 @@ def create_app(
 
     # add routes
     app.include_router(ROUTER, tags=["Admin"])
-    app.include_router(AWS_DESCRIPTOR_ROUTES, tags=["AWS"])
-    app.include_router(DEPLOY_ROUTES)
+    app.include_router(DEPLOY_ROUTER, tags=["Deploy"])
+    app.include_router(AWS_DESCRIPTOR_ROUTER, tags=["AWS"])
 
     # add authorized CORS origins (add these origins to response headers to
     # enable frontends at these origins to receive requests from this API)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=config.allowed_cors_origins,
+        allow_origins=settings.allowed_cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -103,13 +139,13 @@ def create_default_app() -> FastAPI:
     This is a factory method that can be used by WSGI/ASGI runners like gunicorn and uvicorn.
     It is also useful for providing an application invokable by AWS Lambda.
     """
-    config = Config()
-    return create_app(config=config)
+    settings = Settings()
+    return create_app(settings=settings)
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    config = Config()
-    app = create_app(config=config)
+    config = Settings()
+    app = create_app(settings=config)
     uvicorn.run(app, host="0.0.0.0", port=DEV_PORT)

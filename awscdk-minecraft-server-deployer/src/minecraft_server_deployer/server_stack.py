@@ -8,11 +8,10 @@ from aws_cdk import Stack
 from aws_cdk import aws_cloudwatch as cloudwatch
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
-from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
 THIS_DIR = Path(__file__).parent
-USER_DATA_SH_TEMPLATE_FPATH = THIS_DIR / "../../resources/user-data.sh"
+USER_DATA_SH_TEMPLATE_FPATH = (THIS_DIR / "../../resources/user-data.sh").resolve()
 
 
 def render_user_data_script(minecraft_semantic_version: str) -> str:
@@ -156,9 +155,7 @@ class ServerStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, minecraft_server_version: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        s3.Bucket(scope=self, id="MinecraftServer")
-
-        _vpc = ec2.Vpc.from_lookup(scope=self, is_default=True, id="defaultVpc")
+        _vpc = ec2.Vpc.from_lookup(scope=self, id="DefaultVpc", is_default=True)
 
         # set up security group to allow inbound traffic on port 25565 for anyone
         _sg = ec2.SecurityGroup(

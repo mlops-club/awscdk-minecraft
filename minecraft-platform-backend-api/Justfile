@@ -1,5 +1,20 @@
+install:
+	pip install -e .[all]
+
 run:
 	uvicorn "minecraft_paas_api.main:create_default_app" --reload --factory --workers 1 --host 0.0.0.0 --port 8000
+
+test:
+	pytest tests/ \
+		--cov src/ \
+		--cov-report term-missing \
+		--cov-report html \
+		--cov-report xml \
+		--junitxml=./test-reports/junit.xml
+
+	# equivalent of 'python -m doctest src/**/*.py docs/**/*.rst'
+	python -m doctest $(find src -name "*.py")
+	# python -m doctest $(find docs -name "*.rst")
 
 fetch-id-token:
 	#!/usr/bin/env python3
