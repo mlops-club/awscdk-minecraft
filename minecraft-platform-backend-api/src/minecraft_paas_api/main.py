@@ -16,77 +16,22 @@ import os
 from dataclasses import dataclass, field
 from typing import List, Literal, Optional, TypedDict
 
-import boto3
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
-try:
-    from mypy_boto3_stepfunctions.client import SFNClient
-    from mypy_boto3_stepfunctions.type_defs import StartExecutionOutputTypeDef
-except ImportError:
-    print("Warning: boto3-stubs[stepfunctions] not installed")
-
+from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTES
+from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTES
 
 ENVIRONMENT: str = os.environ.get("ENVIRONMENT", "dev")
 DEV_PORT: int = int(os.environ.get("PORT", "8000"))
 STATE_MACHINE_ARN: str = os.environ.get("DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN")
 ROUTER = APIRouter()
 
-
-class ProvisionMinecraftServerPayload(TypedDict):
-    """Input format supported by the state machine that provisions/destroys the Minecraft server."""
-
-    command: Literal["create", "destroy"]
-
-
-def trigger_state_machine(payload: ProvisionMinecraftServerPayload) -> JSONResponse:
-    """Send command to state machine.
-
-    Parameters
-    ----------
-    data : dict
-        A dictionary with a single key "command" which will be either "deploy" or "destroy".
-
-    Returns
-    -------
-    JSONResponse
-        A JSON response with a status code of 200 if the state machine was triggered successfully.
-        A JSON response with a status code of 500 if the state machine was not triggered successfully.
-    """
-    sfn_client: SFNClient = boto3.client("stepfunctions")
-    start_exec: StartExecutionOutputTypeDef = sfn_client.start_execution(
-        stateMachineArn=STATE_MACHINE_ARN,
-        input=json.dumps(payload),
-    )
-    if start_exec["ResponseMetadata"]["HTTPStatusCode"] != 200:
-        return JSONResponse(content="Failure!", status_code=500)
-
-    # get status of state machine
-    # status = sfn_client.describe_execution(executionArn=start_exec["executionArn"])
-    # return JSONResponse(content="Success! {status}", status_code=200)
-    return JSONResponse(content="Success!", status_code=200)
-
-
 @ROUTER.get("/status")
 async def status(request: Request):
     """Return 200 to demonstrate that this REST API is reachable and can execute."""
     # return all of request scope as a dictionary
     return str(request.scope.get("aws", "AWS key not present"))
-
-
-@ROUTER.get("/deploy")
-async def deploy():
-    """Start the server if it is not already running."""
-    data = {"command": "deploy"}
-    return trigger_state_machine(data)
-
-
-@ROUTER.get("/destroy")
-async def destroy():
-    """Stop the server if it is running."""
-    data = {"command": "destroy"}
-    return trigger_state_machine(data)
 
 
 @dataclass
@@ -120,8 +65,9 @@ def create_app(
         description="A FastAPI app for the Minecraft API.",
         version="0.0.1",
         docs_url="/",
+        openapi_url=f"/openapi.json",
         redoc_url=None,
-        openapi_prefix=f"/{ENVIRONMENT}",
+        # openapi_prefix=f"/{ENVIRONMENT}",
     )
     app.state.config: Config = config
     app.state.services = Services()
@@ -134,6 +80,8 @@ def create_app(
 
     # add routes
     app.include_router(ROUTER, tags=["Admin"])
+    app.include_router(AWS_DESCRIPTOR_ROUTES, tags=["AWS"])
+    app.include_router(DEPLOY_ROUTES)
 
     # add authorized CORS origins (add these origins to response headers to
     # enable frontends at these origins to receive requests from this API)
