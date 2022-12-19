@@ -1,12 +1,10 @@
 import json
-from typing import TypedDict, Literal
+from typing import Literal, TypedDict
 
 import boto3
 from fastapi import APIRouter
-from starlette.responses import JSONResponse
-from time import sleep
-
 from minecraft_paas_api.aws_descriptor_routes import state_machine_arn
+from starlette.responses import JSONResponse
 
 ROUTER = APIRouter()
 
@@ -63,4 +61,3 @@ async def destroy():
     """Stop the server if it is running."""
     data = {"command": "destroy"}
     return trigger_state_machine(payload=data, state_machine_arn=state_machine_arn)
-
