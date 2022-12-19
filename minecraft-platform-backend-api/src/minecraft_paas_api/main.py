@@ -11,14 +11,12 @@ The Step Function will then be responsible for starting and stopping the server.
 """
 
 
-import json
 import os
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional, TypedDict
+from typing import List, Optional
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
 from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTES
 from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTES
 
@@ -113,3 +111,5 @@ if __name__ == "__main__":
     config = Config()
     app = create_app(config=config)
     uvicorn.run(app, host="0.0.0.0", port=DEV_PORT)
+    while True:
+        pass
