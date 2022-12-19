@@ -1,17 +1,17 @@
-from pydoc import describe
-
-import boto3
-from moto import mock_stepfunctions
-import pytest
-from mypy_boto3_stepfunctions import SFNClient
+"""Module defines tests for cloud formation status api."""
 import json
-from fastapi.testclient import TestClient
-from fastapi import Response
-from minecraft_paas_api.main import create_app
-from starlette.status import HTTP_200_OK
+import os
 from datetime import datetime
 
-import os
+import boto3
+import pytest
+from fastapi import Response
+from fastapi.testclient import TestClient
+from minecraft_paas_api.main import create_app
+from moto import mock_stepfunctions
+from mypy_boto3_stepfunctions import SFNClient
+from starlette.status import HTTP_200_OK
+
 os.environ["AWS_REGION"] = "us-west-2"
 
 STATE_MACHINE_DEFINITION = {
@@ -126,7 +126,3 @@ def test_get_latest_execution(test_client: TestClient, state_machine_arn: str):
     execution_start_time_2 = parse_execution_time(response.json()["startDate"])
 
     assert execution_start_time_1 < execution_start_time_2
-
-
-
-
