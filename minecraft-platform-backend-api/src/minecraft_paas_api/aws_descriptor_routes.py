@@ -1,7 +1,22 @@
-from datetime import datetime
-from typing import Any, Dict, Optional, List
+"""Module provides funtions to check the status of a cloud formation stack."""
 
+from __future__ import annotations
+
+import os
+from typing import List, Optional
+
+import boto3
 from fastapi import APIRouter
+
+try:
+    from mypy_boto3_stepfunctions.client import SFNClient
+    from mypy_boto3_stepfunctions.type_defs import (
+        DescribeStateMachineOutputTypeDef,
+        ExecutionListItemTypeDef,
+        ListExecutionsOutputTypeDef,
+    )
+except ImportError:
+    print("Could not import boto3 stubs")
 
 ROUTER = APIRouter()
 
@@ -12,17 +27,8 @@ state_machine_arn = "arn:aws:states:us-west-2:630013828440:stateMachine:awscdkmi
 # grab the most recent
 # .... describe it
 
-from time import sleep
-
-try:
-    from mypy_boto3_stepfunctions.client import SFNClient
-    from mypy_boto3_stepfunctions.type_defs import DescribeStateMachineOutputTypeDef, ListExecutionsOutputTypeDef, ExecutionListItemTypeDef
-except:
-    print("Could not import boto3 stubs")
 
 
-import boto3
-import os
 
 os.environ["AWS_PROFILE"] = "mlops-club"
 
@@ -35,14 +41,12 @@ os.environ["AWS_PROFILE"] = "mlops-club"
 #         What is the most recent run of our batch job? What state is the AWS Batch Job in?
 #         Is there a running execution of the state machine? If so, what state is it in? Timestamp?
 
-
-# Can we hit the backend API from the frontend?
-
-
-
-def describe_state_machine(state_machine_arn: str) -> DescribeStateMachineOutputTypeDef:
+def describe_state_machine(state_machine_arn: str) -> "DescribeStateMachineOutputTypeDef":
+    """Get the description of the state machine from the provided ARN."""
     sfn_client: SFNClient = boto3.client("stepfunctions")
-    response: DescribeStateMachineOutputTypeDef = sfn_client.describe_state_machine(stateMachineArn=state_machine_arn)
+    response: "DescribeStateMachineOutputTypeDef" = sfn_client.describe_state_machine(
+        stateMachineArn=state_machine_arn
+    )
     return response
 
 
