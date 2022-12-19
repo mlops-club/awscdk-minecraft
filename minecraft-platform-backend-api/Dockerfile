@@ -12,5 +12,6 @@ LABEL api_stage=2
 
 # Expose our access port
 EXPOSE 8000
+ARG AWS_PROFILE='mlops-club'
 RUN chmod +x /src/minecraft_paas_api/main.py
 CMD python /src/minecraft_paas_api/main.py logs/api.log 2>&1
