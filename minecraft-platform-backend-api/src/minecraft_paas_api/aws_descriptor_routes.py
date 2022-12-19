@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import List, Optional
 
 import boto3
@@ -23,16 +22,6 @@ ROUTER = APIRouter()
 state_machine_arn = "arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachineawscdkminecraftProvisionMcSta-aDmssJYgrn9o"
 # https://us-west-2.console.aws.amazon.com/states/home?region=us-west-2#/statemachines/view/arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachineawscdkminecraftProvisionMcSta-aDmssJYgrn9o
 
-# list the executions
-# grab the most recent
-# .... describe it
-
-
-
-
-os.environ["AWS_PROFILE"] = "mlops-club"
-
-
 # Questions that the functions in this module need to answer:
 # TODO 1. Is the EC2 instance provisioned -> is it running?
 # TODO 2. Is the minecraft docker container on the EC2 instance actually running and accepting traffic on 25565?
@@ -40,6 +29,7 @@ os.environ["AWS_PROFILE"] = "mlops-club"
 #         Is the CloudFormation deployment running?
 #         What is the most recent run of our batch job? What state is the AWS Batch Job in?
 #         Is there a running execution of the state machine? If so, what state is it in? Timestamp?
+
 
 def describe_state_machine(state_machine_arn: str) -> "DescribeStateMachineOutputTypeDef":
     """Get the description of the state machine from the provided ARN."""
