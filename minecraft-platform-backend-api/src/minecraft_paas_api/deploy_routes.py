@@ -2,8 +2,8 @@ import json
 from typing import Literal, TypedDict
 
 import boto3
-from fastapi import APIRouter
-from minecraft_paas_api.aws_descriptor_routes import state_machine_arn
+from fastapi import APIRouter, Request
+from minecraft_paas_api.settings import Settings
 from starlette.responses import JSONResponse
 
 ROUTER = APIRouter()
@@ -50,14 +50,22 @@ def trigger_state_machine(payload: ProvisionMinecraftServerPayload, state_machin
 
 
 @ROUTER.get("/deploy")
-async def deploy():
+async def deploy(request: Request):
     """Start the server if it is not already running."""
+    app_state = request.app.state
+    settings: Settings = app_state.settings
     data = {"command": "deploy"}
-    return trigger_state_machine(payload=data, state_machine_arn=state_machine_arn)
+    return trigger_state_machine(
+        payload=data, state_machine_arn=settings.provision_minecraft_server__state_machine__arn
+    )
 
 
 @ROUTER.get("/destroy")
-async def destroy():
+async def destroy(request: Request):
     """Stop the server if it is running."""
+    app_state = request.app.state
+    settings: Settings = app_state.settings
     data = {"command": "destroy"}
-    return trigger_state_machine(payload=data, state_machine_arn=state_machine_arn)
+    return trigger_state_machine(
+        payload=data, state_machine_arn=settings.provision_minecraft_server__state_machine__arn
+    )

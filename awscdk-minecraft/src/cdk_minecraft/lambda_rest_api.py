@@ -12,7 +12,6 @@ from constructs import Construct
 # API_SUBDOMAIN = "api.rootski.io"
 
 
-
 class MinecraftPaaSRestApi(Construct):
     """An API Gateway mapping to a Lambda function with the backend code inside."""
 
@@ -22,6 +21,7 @@ class MinecraftPaaSRestApi(Construct):
         construct_id: str,
         provision_server_state_machine_arn: str,
         # authorizer: apigw.CfnAuthorizer,
+        frontend_cors_url: str,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -33,6 +33,7 @@ class MinecraftPaaSRestApi(Construct):
             scope=self,
             id_prefix=construct_id,
             provision_server_state_machine_arn=provision_server_state_machine_arn,
+            frontend_cors_url=frontend_cors_url,
         )
 
         self.role: iam.Role = fast_api_function.role
@@ -60,6 +61,7 @@ def make_fast_api_function(
     scope: Construct,
     id_prefix: str,
     provision_server_state_machine_arn: str,
+    frontend_cors_url: str,
 ) -> lambda_.Function:
     """
     Create a lambda function with the FastAPI app.
@@ -116,6 +118,7 @@ def make_fast_api_function(
         ),
         environment={
             "DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": provision_server_state_machine_arn,
+            "FRONTEND_CORS_URL": frontend_cors_url,
             "ENVIRONMENT": "prod",
         },
     )

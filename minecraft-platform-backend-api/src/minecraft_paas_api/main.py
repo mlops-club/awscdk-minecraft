@@ -12,31 +12,34 @@ The Step Function will then be responsible for starting and stopping the server.
 
 
 import os
-from dataclasses import dataclass, field
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import Literal, Optional, TypedDict
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTES
-from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTES
+from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTER
+from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTER
+from minecraft_paas_api.settings import Settings
 
-ENVIRONMENT: str = os.environ.get("ENVIRONMENT", "dev")
-DEV_PORT: int = int(os.environ.get("PORT", "8000"))
-STATE_MACHINE_ARN: str = os.environ.get("DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN")
+try:
+    pass
+except ImportError:
+    print("Warning: boto3-stubs[stepfunctions] not installed")
+
 ROUTER = APIRouter()
+
+
+class ProvisionMinecraftServerPayload(TypedDict):
+    """Input format supported by the state machine that provisions/destroys the Minecraft server."""
+
+    command: Literal["create", "destroy"]
+
 
 @ROUTER.get("/status")
 async def status(request: Request):
     """Return 200 to demonstrate that this REST API is reachable and can execute."""
     # return all of request scope as a dictionary
-    return str(request.scope.get("aws", "AWS key not present"))
-
-
-@dataclass
-class Config:
-    """API settings that are defined at startup time."""
-
-    allowed_cors_origins: List[str] = field(default_factory=lambda: [f"http://localhost:{DEV_PORT}"])
+    return str(request.scope)
 
 
 @dataclass
@@ -52,22 +55,20 @@ class Services:
 
 
 def create_app(
-    config: Optional[Config] = None,
+    settings: Optional[Settings] = None,
 ) -> FastAPI:
 
-    if not config:
-        config = Config()
+    if not settings:
+        settings = Settings()
 
     app = FastAPI(
         title="Minecraft API",
         description="A FastAPI app for the Minecraft API.",
         version="0.0.1",
         docs_url="/",
-        openapi_url=f"/openapi.json",
         redoc_url=None,
-        # openapi_prefix=f"/{ENVIRONMENT}",
     )
-    app.state.config: Config = config
+    app.state.settings: Settings = settings
     app.state.services = Services()
 
     # configure startup behavior: initialize services on startup
@@ -78,14 +79,14 @@ def create_app(
 
     # add routes
     app.include_router(ROUTER, tags=["Admin"])
-    app.include_router(AWS_DESCRIPTOR_ROUTES, tags=["AWS"])
-    app.include_router(DEPLOY_ROUTES)
+    app.include_router(DEPLOY_ROUTER, tags=["Deploy"])
+    app.include_router(AWS_DESCRIPTOR_ROUTER, tags=["AWS"])
 
     # add authorized CORS origins (add these origins to response headers to
     # enable frontends at these origins to receive requests from this API)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=config.allowed_cors_origins,
+        allow_origins=settings.allowed_cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -101,15 +102,13 @@ def create_default_app() -> FastAPI:
     This is a factory method that can be used by WSGI/ASGI runners like gunicorn and uvicorn.
     It is also useful for providing an application invokable by AWS Lambda.
     """
-    config = Config()
-    return create_app(config=config)
+    settings = Settings()
+    return create_app(settings=settings)
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    config = Config()
-    app = create_app(config=config)
-    uvicorn.run(app, host="0.0.0.0", port=DEV_PORT)
-    while True:
-        pass
+    config = Settings()
+    app = create_app(settings=config)
+    uvicorn.run(app, host="0.0.0.0", port=config.dev_port)

@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   build-rootski-frontend:
-    command: build
+    command: "[[ -d ./node_modules ]] || (npm install && npm audit fix);  npm run build"
+    entrypoint: /bin/bash -c
     image: awscdk-minecraft/ui
     build:
       context: .

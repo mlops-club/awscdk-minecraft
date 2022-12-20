@@ -20,3 +20,7 @@ metaflow-repos
 *build/
 *build_/
 *dist/
+*htmlcov
+*test-reports
+*.coverage
+*coverage.xml

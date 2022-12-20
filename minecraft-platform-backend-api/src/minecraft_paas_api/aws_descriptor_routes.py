@@ -1,11 +1,10 @@
-"""Module provides funtions to check the status of a cloud formation stack."""
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from __future__ import annotations
-
-from typing import List, Optional
-
-import boto3
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
+from minecraft_paas_api.settings import Settings
+from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 try:
     from mypy_boto3_stepfunctions.client import SFNClient
@@ -14,27 +13,28 @@ try:
         ExecutionListItemTypeDef,
         ListExecutionsOutputTypeDef,
     )
-except ImportError:
+except:
     print("Could not import boto3 stubs")
+
+
+import boto3
 
 ROUTER = APIRouter()
 
-state_machine_arn = "arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachineawscdkminecraftProvisionMcSta-aDmssJYgrn9o"
-# https://us-west-2.console.aws.amazon.com/states/home?region=us-west-2#/statemachines/view/arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachineawscdkminecraftProvisionMcSta-aDmssJYgrn9o
 
-# Questions that the functions in this module need to answer:
-# TODO 1. Is the EC2 instance provisioned -> is it running?
-# TODO 2. Is the minecraft docker container on the EC2 instance actually running and accepting traffic on 25565?
-# TODO 3. CloudFormation:
-#         Is the CloudFormation deployment running?
-#         What is the most recent run of our batch job? What state is the AWS Batch Job in?
-#         Is there a running execution of the state machine? If so, what state is it in? Timestamp?
+def replate_datetimes_in_dict_with_strings(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Replace all datetime objects in a dict with strings."""
+    for key, value in data.items():
+        if isinstance(value, datetime):
+            data[key] = value.isoformat()
+        elif isinstance(value, dict):
+            data[key] = replate_datetimes_in_dict_with_strings(value)
+    return data
 
 
-def describe_state_machine(state_machine_arn: str) -> "DescribeStateMachineOutputTypeDef":
-    """Get the description of the state machine from the provided ARN."""
+def describe_state_machine(state_machine_arn: str) -> DescribeStateMachineOutputTypeDef:
     sfn_client: SFNClient = boto3.client("stepfunctions")
-    response: "DescribeStateMachineOutputTypeDef" = sfn_client.describe_state_machine(
+    response: DescribeStateMachineOutputTypeDef = sfn_client.describe_state_machine(
         stateMachineArn=state_machine_arn
     )
     return response
@@ -47,16 +47,33 @@ def get_latest_statemachine_execution(state_machine_arn: str) -> Optional[Execut
         stateMachineArn=state_machine_arn,
         maxResults=10,
     )
-    executions: List[ExecutionListItemTypeDef] = sorted(response['executions'], key=lambda x: x["startDate"], reverse=True)
+    executions: List[ExecutionListItemTypeDef] = sorted(
+        response["executions"], key=lambda x: x["startDate"], reverse=True
+    )
     latest_execution: ExecutionListItemTypeDef = executions[0] if len(executions) > 0 else None
     return latest_execution
 
 
 @ROUTER.get("/latest-execution")
-def get_statemachine():
-    return get_latest_statemachine_execution(state_machine_arn=state_machine_arn)
+def get_statemachine(request: Request):
+    """Get the latest execution of a state machine."""
+    app_state = request.app.state
+    settings: Settings = app_state.settings
+    latest_execution: Optional[dict] = get_latest_statemachine_execution(
+        state_machine_arn=settings.provision_minecraft_server__state_machine__arn
+    )
+
+    if latest_execution:
+        return JSONResponse(
+            content=replate_datetimes_in_dict_with_strings(latest_execution), status_code=HTTP_200_OK
+        )
+
+    return JSONResponse(content={}, status_code=HTTP_404_NOT_FOUND)
 
 
 @ROUTER.get("/state-machine-status")
-def get_statemachine():
-    return describe_state_machine(state_machine_arn=state_machine_arn)
+def get_state_machine_status(request: Request):
+    """Get the stat machine status."""
+    app_state = request.app.state
+    settings: Settings = app_state.settings
+    return describe_state_machine(state_machine_arn=settings.provision_minecraft_server__state_machine__arn)

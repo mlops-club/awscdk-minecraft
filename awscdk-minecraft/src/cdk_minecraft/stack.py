@@ -83,6 +83,7 @@ class MinecraftPaasStack(Stack):
             scope=self,
             construct_id="MinecraftPaaSRestAPI",
             provision_server_state_machine_arn=mc_deployment_state_machine.state_machine.state_machine_arn,
+            frontend_cors_url=frontend_url,
             # authorizer=authorizer,
         )
 
