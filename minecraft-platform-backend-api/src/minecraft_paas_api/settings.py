@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "production"]
 
-    provision_minecraft_server__state_machine__arn: str
+    minecraft_server_state_machine_arn: str
     """ARN of the state machine used to deploy/destroy a minecraft server."""
 
     frontend_cors_url: Optional[str] = None

@@ -60,7 +60,7 @@ def get_statemachine(request: Request):
     app_state = request.app.state
     settings: Settings = app_state.settings
     latest_execution: Optional[dict] = get_latest_statemachine_execution(
-        state_machine_arn=settings.provision_minecraft_server__state_machine__arn
+        state_machine_arn=settings.minecraft_server_state_machine_arn
     )
 
     if latest_execution:
@@ -76,4 +76,4 @@ def get_state_machine_status(request: Request):
     """Get the stat machine status."""
     app_state = request.app.state
     settings: Settings = app_state.settings
-    return describe_state_machine(state_machine_arn=settings.provision_minecraft_server__state_machine__arn)
+    return describe_state_machine(state_machine_arn=settings.minecraft_server_state_machine_arn)

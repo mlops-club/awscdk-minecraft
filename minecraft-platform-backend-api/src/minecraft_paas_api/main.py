@@ -68,6 +68,13 @@ def create_app(
         docs_url="/",
         redoc_url=None,
     )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.state.settings: Settings = settings
     app.state.services = Services()
 

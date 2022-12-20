@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   build-rootski-frontend:
     command: "[[ -d ./node_modules ]] || (npm install && npm audit fix);  npm run build"

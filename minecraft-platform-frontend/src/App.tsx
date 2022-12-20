@@ -7,7 +7,6 @@ import axios from 'axios';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Home from './components/Home';
 // auth with aws cognito from amazon-cognito-identity-js
-import { config } from 'process';
 
 /* wrap app in material UI theme */
 
