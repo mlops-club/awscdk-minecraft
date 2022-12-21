@@ -4,7 +4,7 @@ import { fetchConfig, MinecraftFrontendConfig } from '../config';
 import { configureAmplifyCognitoAuthSingleton, logAuthData } from '../aws-cognito/auth-utils';
 import LoginButton from '../aws-cognito/LoginButton';
 import ServerOffline from './ServerOffline';
-import { Button } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 
 
 const Home = () => {
@@ -24,7 +24,8 @@ const Home = () => {
     // return a Material UI table with the config.json contents
     return (
         <>
-            <h1>Minecraft Server Hosting by the MLOps Club</h1>
+            <Typography variant="h5">Minecraft Server Hosting by the MLOps Club</Typography>
+
             <Button variant="outlined" onClick={() => console.log(config)}>Load config.json</Button>
             <LoginButton />
             <Button variant="outlined" color="info" onClick={logAuthData}>Log auth data</Button>

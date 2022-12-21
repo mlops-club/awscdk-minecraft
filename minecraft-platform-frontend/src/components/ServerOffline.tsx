@@ -41,22 +41,42 @@
 
 
 import React from 'react';
-import { SelectChangeEvent, Theme } from '@mui/material';
+import { SelectChangeEvent, Theme, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 
 // import useStyles
 import { FormControl, Select, MenuItem, Checkbox } from '@mui/material';
 
 
-const useStyles = makeStyles((theme: Theme) => ({
+// const useStyles = makeStyles((theme: Theme) => ({
+//     formControl: {
+//         margin: theme.spacing(1),
+//         minWidth: 120,
+//     },
+//     form: {
+//         // contents should be on top of each other
+//         display: 'flex',
+//         flexDirection: 'column',
+//         alignItems: 'center',
+//     }
+// }));
+
+const useStyles = makeStyles({
     formControl: {
-        margin: theme.spacing(1),
         minWidth: 120,
     },
-}));
+    form: {
+        // contents should be on top of each other
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: "flex-start",
+    }
+});
 
 const ServerOffline = () => {
 
+
+    const classes = useStyles();
 
     const [hours, setHours] = React.useState(1);
     const [allowRisk, setAllowRisk] = React.useState(false);
@@ -75,7 +95,9 @@ const ServerOffline = () => {
     };
 
     return (
-        <form>
+        <form className={classes.form}>
+
+            <Typography>How many hours would you like to run the server for?</Typography>
             <FormControl>
                 <Select defaultValue={1} value={hours} onChange={handleHoursChange} >
                     <MenuItem value={1}>1 Hour</MenuItem>
@@ -83,13 +105,16 @@ const ServerOffline = () => {
                     <MenuItem value={3}>3 Hours</MenuItem>
                 </Select>
             </FormControl>
+
+            <Typography>Are you willing to risk the server stopping suddenly? (up to 3 times cheaper)</Typography>
             <FormControl>
                 <Checkbox
                     checked={allowRisk}
                     onChange={handleAllowRiskChange}
                 />
-                Allow Risk
             </FormControl>
+
+            <Typography>What size server would you like?</Typography>
             <FormControl>
                 <Select value={serverSize} onChange={handleServerSizeChange}>
                     <MenuItem value="small">Small</MenuItem>
