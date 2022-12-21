@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    ports:
+      - 8000:8000
+    image: minecraft-api
+    volumes:
+      - ~/.aws:/root/.aws
+      - .:/app
+    environment:
+      - AWS_PROFILE=mlops-club
+      - DEV_PORT=8000
+      - DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN=arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachineawscdkminecraftProvisionMcSta-aDmssJYgrn9o
+      - ENVIRONMENT=dev
+
+# Get a valid requet to got from our frontend to back end

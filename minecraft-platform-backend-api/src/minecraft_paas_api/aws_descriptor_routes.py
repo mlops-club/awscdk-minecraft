@@ -56,6 +56,7 @@ def get_latest_statemachine_execution(state_machine_arn: str) -> Optional[Execut
 
 @ROUTER.get("/latest-execution")
 def get_statemachine(request: Request):
+    """Get the latest execution of a state machine."""
     app_state = request.app.state
     settings: Settings = app_state.settings
     latest_execution: Optional[dict] = get_latest_statemachine_execution(
@@ -64,8 +65,7 @@ def get_statemachine(request: Request):
 
     if latest_execution:
         return JSONResponse(
-            content=replate_datetimes_in_dict_with_strings(latest_execution),
-            status_code=HTTP_200_OK,
+            content=replate_datetimes_in_dict_with_strings(latest_execution), status_code=HTTP_200_OK
         )
 
     return JSONResponse(content={}, status_code=HTTP_404_NOT_FOUND)
@@ -73,6 +73,7 @@ def get_statemachine(request: Request):
 
 @ROUTER.get("/state-machine-status")
 def get_state_machine_status(request: Request):
+    """Get the stat machine status."""
     app_state = request.app.state
     settings: Settings = app_state.settings
     return describe_state_machine(state_machine_arn=settings.provision_minecraft_server__state_machine__arn)

@@ -11,29 +11,21 @@ The Step Function will then be responsible for starting and stopping the server.
 """
 
 
-import json
 import os
 from dataclasses import dataclass
 from typing import Literal, Optional, TypedDict
 
-import boto3
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTER
 from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTER
 from minecraft_paas_api.settings import Settings
 
 try:
-    from mypy_boto3_stepfunctions.client import SFNClient
-    from mypy_boto3_stepfunctions.type_defs import StartExecutionOutputTypeDef
+    pass
 except ImportError:
     print("Warning: boto3-stubs[stepfunctions] not installed")
 
-
-ENVIRONMENT: str = os.environ.get("ENVIRONMENT", "dev")
-DEV_PORT: int = int(os.environ.get("PORT", "8000"))
-STATE_MACHINE_ARN: str = os.environ.get("DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN")
 ROUTER = APIRouter()
 
 
@@ -43,39 +35,11 @@ class ProvisionMinecraftServerPayload(TypedDict):
     command: Literal["create", "destroy"]
 
 
-def trigger_state_machine(payload: ProvisionMinecraftServerPayload) -> JSONResponse:
-    """Send command to state machine.
-
-    Parameters
-    ----------
-    data : dict
-        A dictionary with a single key "command" which will be either "deploy" or "destroy".
-
-    Returns
-    -------
-    JSONResponse
-        A JSON response with a status code of 200 if the state machine was triggered successfully.
-        A JSON response with a status code of 500 if the state machine was not triggered successfully.
-    """
-    sfn_client: SFNClient = boto3.client("stepfunctions")
-    start_exec: StartExecutionOutputTypeDef = sfn_client.start_execution(
-        stateMachineArn=STATE_MACHINE_ARN,
-        input=json.dumps(payload),
-    )
-    if start_exec["ResponseMetadata"]["HTTPStatusCode"] != 200:
-        return JSONResponse(content="Failure!", status_code=500)
-
-    # get status of state machine
-    # status = sfn_client.describe_execution(executionArn=start_exec["executionArn"])
-    # return JSONResponse(content="Success! {status}", status_code=200)
-    return JSONResponse(content="Success!", status_code=200)
-
-
 @ROUTER.get("/status")
 async def status(request: Request):
     """Return 200 to demonstrate that this REST API is reachable and can execute."""
     # return all of request scope as a dictionary
-    return str(request.scope.get("aws", "AWS key not present"))
+    return str(request.scope)
 
 
 @dataclass
@@ -103,7 +67,6 @@ def create_app(
         version="0.0.1",
         docs_url="/",
         redoc_url=None,
-        openapi_prefix=f"/{ENVIRONMENT}",
     )
     app.state.settings: Settings = settings
     app.state.services = Services()
@@ -148,4 +111,4 @@ if __name__ == "__main__":
 
     config = Settings()
     app = create_app(settings=config)
-    uvicorn.run(app, host="0.0.0.0", port=DEV_PORT)
+    uvicorn.run(app, host="0.0.0.0", port=config.dev_port)

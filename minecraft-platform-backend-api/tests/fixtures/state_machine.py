@@ -58,7 +58,6 @@ STATE_MACHINE_DEFINITION = {
 @pytest.fixture
 def state_machine_arn() -> str:
     """Create a step functions state machine with boto; return its ARN."""
-
     with mock_stepfunctions():
         sfn_client: SFNClient = boto3.client("stepfunctions")
         create_state_machine: dict = sfn_client.create_state_machine(
