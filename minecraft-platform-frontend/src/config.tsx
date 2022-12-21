@@ -1,14 +1,38 @@
 import axios from "axios"
 
+/**
+ * Static configuration values for the frontend.
+ *
+ * Most of these values are necessary in order to correctly interact with
+ * external services such as the backend API and AWS Cognito.
+ */
 export type MinecraftFrontendConfig = {
-    backend_api_url: string
-    cognito_user_pool_id: string
-    cognito_hosted_ui_app_client_id: string
-    cognito_hosted_ui_app_client_allowed_scopes: Array<string>
-    cognito_hosted_ui_fqdn: string
-    cognito_user_pool_region: string
-    cognito_hosted_ui_redirect_sign_in_url: string
-    cognito_hosted_ui_redirect_sign_out_url: string
+
+    /**
+     * Base URL for the backend API.
+     */
+    readonly backend_api_url: string
+
+    /**
+     * AWS Cognito configuration values.
+     */
+    readonly cognito_user_pool_id: string
+    readonly cognito_hosted_ui_app_client_id: string
+    readonly cognito_hosted_ui_app_client_allowed_scopes: Array<string>
+    readonly cognito_hosted_ui_fqdn: string
+    readonly cognito_user_pool_region: string
+
+    /**
+     * URL to redirect to after a successful sign-in. This URL must be registered
+     * with the cognito app client in advance.
+     */
+    readonly cognito_hosted_ui_redirect_sign_in_url: string
+
+    /**
+     * URL to redirect to after a successful sign-out. This URL must be registered
+     * with the cognito app client in advance.
+     */
+    readonly cognito_hosted_ui_redirect_sign_out_url: string
 }
 
 /**
@@ -28,7 +52,7 @@ export const fetchConfig = async (): Promise<MinecraftFrontendConfig> => {
  * Determine whether the window URL is localhost.
  * If not, we assume we are running in production.
  */
-export const isLocalhost = () => Boolean(
+const isLocalhost = () => Boolean(
     window.location.hostname === "localhost" ||
     // [::1] is the IPv6 localhost address.
     window.location.hostname === "[::1]" ||

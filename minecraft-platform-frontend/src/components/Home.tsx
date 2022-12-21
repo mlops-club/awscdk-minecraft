@@ -3,7 +3,8 @@ import { useEffect } from 'react';
 import { fetchConfig, MinecraftFrontendConfig } from '../config';
 import { configureAmplifyCognitoAuthSingleton, logAuthData } from '../aws-cognito/auth-utils';
 import LoginButton from '../aws-cognito/LoginButton';
-import Button from '@mui/joy/Button';
+import ServerOffline from './ServerOffline';
+import { Button } from '@mui/material';
 
 
 const Home = () => {
@@ -23,10 +24,12 @@ const Home = () => {
     // return a Material UI table with the config.json contents
     return (
         <>
-            <h1>Home</h1>
+            <h1>Minecraft Server Hosting by the MLOps Club</h1>
             <Button variant="outlined" onClick={() => console.log(config)}>Load config.json</Button>
             <LoginButton />
-            <Button variant="solid" color="info" onClick={logAuthData}>Log auth data</Button>
+            <Button variant="outlined" color="info" onClick={logAuthData}>Log auth data</Button>
+
+            <ServerOffline />
         </>
     );
 };
