@@ -1,72 +1,13 @@
-// react component
-// import React from 'react';
-
-// import { FormControl, FormHelperText, Input, InputLabel } from '@mui/material';
-
-// /**
-//  * Material UI form with the following layout:
-//  *
-//  * - a dropdown menu to select how many hours to run the server for (1, 2, or 3)
-//  * - a checkbox determining whether the user can risk the server stopping suddenly (it's cheaper if so)
-//  * - a dropdown menu asking what the server size should be (small, medium, or large)
-//  *
-//  * These items are vertically aligned. Each item below the one before.
-//  */
-// const ServerOffline = () => {
-
-//     return (
-//         <div>
-
-//             <h1>Server is offline</h1>
-
-//             {/* dropdown menu to select 1, 2, or 3 hours */}
-
-
-//             {/* checkbox to determine whether the user can risk the server stopping suddenly */}
-//             {/* dropdown menu to select small, medium, or large server size */}
-
-//             {/* <FormControl>
-//                 <InputLabel htmlFor="my-input">Email address</InputLabel>
-//                 <Input id="my-input" aria-describedby="my-helper-text" />
-//                 <FormHelperText id="my-helper-text">We'll never share your email.</FormHelperText>
-//             </FormControl> */}
-
-
-//         </div>
-//     )
-
-// };
-
-// export default ServerOffline;
-
-
 import React from 'react';
-import { SelectChangeEvent, Theme, Typography } from '@mui/material';
+import { Alert, Button, SelectChangeEvent, Theme, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
-
-// import useStyles
 import { FormControl, Select, MenuItem, Checkbox } from '@mui/material';
-
-
-// const useStyles = makeStyles((theme: Theme) => ({
-//     formControl: {
-//         margin: theme.spacing(1),
-//         minWidth: 120,
-//     },
-//     form: {
-//         // contents should be on top of each other
-//         display: 'flex',
-//         flexDirection: 'column',
-//         alignItems: 'center',
-//     }
-// }));
 
 const useStyles = makeStyles({
     formControl: {
         minWidth: 120,
     },
     form: {
-        // contents should be on top of each other
         display: 'flex',
         flexDirection: 'column',
         alignItems: "flex-start",
@@ -117,12 +58,19 @@ const ServerOffline = () => {
             <Typography>What size server would you like?</Typography>
             <FormControl>
                 <Select value={serverSize} onChange={handleServerSizeChange}>
-                    <MenuItem value="small">Small</MenuItem>
-                    <MenuItem value="medium">Medium</MenuItem>
-                    <MenuItem value="large">Large</MenuItem>
+                    <MenuItem value="small">Small $0.10/hour</MenuItem>
+                    <MenuItem value="medium">Medium $0.20/hour</MenuItem>
+                    <MenuItem value="large">Large $0.30/hour</MenuItem>
                 </Select>
             </FormControl>
-        </form>
+
+            <Alert severity="info">
+                Your total cost will be (<strong>{hours}</strong> hours) * <strong>$0.20/hour</strong> for a <strong>Medium</strong> size = <strong>$0.40</strong>
+            </Alert >
+
+
+            <Button variant="contained" color={"success"}>Launch server</Button>
+        </form >
     );
 };
 
