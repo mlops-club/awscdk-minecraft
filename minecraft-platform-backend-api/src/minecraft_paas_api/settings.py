@@ -32,7 +32,7 @@ class Settings(BaseSettings):
         # causes attriutes of Settings to be read from environment variables; ignoring case
         case_sensitive = False
 
-    environment: Literal["development", "production"]
+    environment: Literal["development", "production"] = "development"
 
     provision_minecraft_server__state_machine__arn: str
     """ARN of the state machine used to deploy/destroy a minecraft server."""

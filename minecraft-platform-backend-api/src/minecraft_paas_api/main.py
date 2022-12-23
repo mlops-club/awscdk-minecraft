@@ -11,20 +11,13 @@ The Step Function will then be responsible for starting and stopping the server.
 """
 
 
-import os
 from dataclasses import dataclass
 from typing import Literal, Optional, TypedDict
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTER
-from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTER
+from minecraft_paas_api.routes import AWS_DESCRIPTOR_ROUTER, DEPLOY_ROUTER
 from minecraft_paas_api.settings import Settings
-
-try:
-    pass
-except ImportError:
-    print("Warning: boto3-stubs[stepfunctions] not installed")
 
 ROUTER = APIRouter()
 
@@ -68,14 +61,13 @@ def create_app(
         docs_url="/",
         redoc_url=None,
     )
-    app.state.settings: Settings = settings
+    app.state.settings = settings
     app.state.services = Services()
 
     # configure startup behavior: initialize services on startup
     @app.on_event("startup")
     async def on_startup():
-        print(dict(os.environ))
-        print("We're starting up!")
+        print(settings.json())
 
     # add routes
     app.include_router(ROUTER, tags=["Admin"])
