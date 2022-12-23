@@ -1,13 +1,17 @@
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from pprint import pprint
 from typing import Dict, Literal, Optional
 
 from pydantic import BaseModel, validator
 
 
-def handler(event: Dict[str, str], context):
+def handler(event: Dict[str, str], context) -> Dict[str, str]:
     """Validate the ``event`` state machine input object."""
+    print("event: ")
+    pprint(event)
     ProvisionMinecraftServerStateMachineInput(**event)
+    return event
 
 
 class ProvisionMinecraftServerStateMachineInput(BaseModel):
