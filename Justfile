@@ -91,6 +91,7 @@ open-aws:
 # Ensure that an "mlops-club" AWS CLI profile is configured. Then go through an AWS SSO
 # sign in flow to get temporary credentials for that profile. If this command finishes successfully,
 # you will be able to run AWS CLI commands against the MLOps club account using '--profile mlops-club'
+# WARNING: this login only lasts for 8 hours
 login-to-aws:
     #!/bin/bash
     MLOPS_CLUB_AWS_PROFILE_NAME="mlops-club"

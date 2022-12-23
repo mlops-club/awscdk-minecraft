@@ -1,0 +1,14 @@
+install:
+	pip install -e .[all]
+
+test:
+	pytest tests/ \
+		--cov src/ \
+		--cov-report term-missing \
+		--cov-report html \
+		--cov-report xml \
+		--junitxml=./test-reports/junit.xml
+
+	# equivalent of 'python -m doctest src/**/*.py docs/**/*.rst'
+	python -m doctest $(find src -name "*.py")
+	# python -m doctest $(find docs -name "*.rst")
