@@ -16,7 +16,7 @@ from typing import Literal, Optional, TypedDict
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from minecraft_paas_api.routes import AWS_DESCRIPTOR_ROUTER, DEPLOY_ROUTER, SERVER_STATUS_ROUTER
+from minecraft_paas_api.routes import AWS_DESCRIPTOR_ROUTER, SERVER_ROUTER
 from minecraft_paas_api.settings import Settings
 
 ROUTER = APIRouter()
@@ -71,9 +71,8 @@ def create_app(
 
     # add routes
     app.include_router(ROUTER, tags=["Admin"])
-    app.include_router(DEPLOY_ROUTER, tags=["Deploy"])
+    app.include_router(SERVER_ROUTER, tags=["SERVER"])
     app.include_router(AWS_DESCRIPTOR_ROUTER, tags=["AWS"])
-    app.include_router(SERVER_STATUS_ROUTER, tags=["AWS"])
 
     # add authorized CORS origins (add these origins to response headers to
     # enable frontends at these origins to receive requests from this API)

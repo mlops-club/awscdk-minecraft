@@ -59,7 +59,7 @@ def try_get_cloud_formation_stack_outputs(
     return outputs
 
 
-def get_cloud_form_output_value(cloud_form_stack_name: str, cloud_form_key_name: str) -> str:
+def get_cloudform_output_value(cloud_form_stack_name: str, cloud_form_key_name: str) -> str:
     """
     Return the cloud form output value for the provided output name.
 

@@ -88,7 +88,7 @@ def describe_state_machine_execution(execution_arn: str) -> "DescribeExecutionOu
     return response
 
 
-def get_state_machine_execution_input(execution_arn: str) -> dict:
+def get_state_machine_execution_input(execution_arn: str) -> Dict:
     """
     Get the input of a state machine execution.
 
