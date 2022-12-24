@@ -1,0 +1,2 @@
+install:
+	python -m pip install -e .[all]

@@ -46,6 +46,9 @@ class ProvisionMinecraftServerStateMachineInput(BaseModel):
             return destroy_at_utc_timestamp
 
         return destroy_at_utc_timestamp
+    
+    # assert that deploy command version is formatted correctly
+    @validator("version", always=True)  # TODO: do we need always=True here? will the f
 
 
 def try_parse_datetime_from_iso_string(iso_string: str) -> datetime:
@@ -54,7 +57,7 @@ def try_parse_datetime_from_iso_string(iso_string: str) -> datetime:
     except ValueError as err:
         raise ValueError(
             f"destroy_at_utc_timestamp must be set to an ISO formatted timstamp string when command is destroy. \n{str(err)}"
-        )
+        ) from err
 
 
 def assert_datetime_is_in_future(timestamp: datetime):
@@ -66,6 +69,17 @@ def assert_datetime_is_in_future(timestamp: datetime):
         raise ValueError(
             f"'timestamp' must be set to a timestamp in the future. Now is {current_iso_time}. Got: {timestamp_as_iso_string}"
         )
+
+
+def assert_that_version_is_formatted_correctly(version: str):
+    version_parts = version.split(".")
+    if len(version_parts) != 3:
+        raise ValueError(f"version must be formatted as 'x.y.z'. Got: {version}")
+    for part in version_parts:
+        try:
+            int(part)
+        except ValueError as err:
+            raise ValueError(f"version must be formatted as 'x.y.z'. Got: {version}") from err
 
 
 def convert_zoned_datetime_to_utc_datetime(zoned_datetime: datetime) -> datetime:
@@ -111,6 +125,22 @@ def run_destroy_command_with_a_valid_utc_timestamp_in_the_future():
 def run_deploy_command():
     event = {
         "command": "deploy",
+    }
+    handler(event, None)
+
+
+def run_deploy_command_with_version():
+    event = {
+        "command": "deploy",
+        "version": "1.8.8",
+    }
+    handler(event, None)
+
+
+def raise_value_error_when_command_is_deploy_but_version_is_misformatted():
+    event = {
+        "command": "deploy",
+        "version": "1",
     }
     handler(event, None)
 

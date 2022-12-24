@@ -27,12 +27,14 @@ cat << EOF > /home/ec2-user/docker-compose.yml
 version: '3.7'
 services:
     minecraft:
+        # image docs: https://github.com/itzg/docker-minecraft-server
         image: itzg/minecraft-server
         restart: always
         ports:
-            - 25565:25565
+            - "25565:25565"
         environment:
-            EULA: "TRUE"
+            EULA: TRUE
+            TYPE: PAPER
             VERSION: "$MINECRAFT_SERVER_SEMANTIC_VERSION"
         networks:
         - minecraft-server
