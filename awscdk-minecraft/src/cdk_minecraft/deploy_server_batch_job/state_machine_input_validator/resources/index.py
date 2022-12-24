@@ -21,7 +21,15 @@ def deploy_handler(event: Dict[str, str], context) -> Dict[str, str]:
     ProvisionMinecraftServerStateMachineInput(**event)
     return event
 
-def handler(event: Dict[str, str], conte)
+
+def handler(event: Dict[str, str], context) -> Dict[str, str]:
+    """Validate the ``event`` state machine input object."""
+    # if the event is "destroy", call the destroy handler, otherwise call the deploy handler
+    command: Literal["destroy", "deploy"] = event["command"]
+    if command == "destroy":
+        return destroy_handler(event=event, context=context)
+    return deploy_handler(event=event, context=context)
+
 
 class ProvisionMinecraftServerStateMachineInput(BaseModel):
     """
@@ -111,7 +119,7 @@ def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_in
         "command": "destroy",
         "destroy_at_utc_timestamp": "2021-04-12T23:59:59.999999",
     }
-    destroy_handler(event, None)
+    handler(event, None)
 
 
 def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_not_a_valid_iso_formatted_timestamp_string():
@@ -119,14 +127,14 @@ def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_no
         "command": "destroy",
         "destroy_at_utc_timestamp": "2021-04-12T23:59:59.999999Z",
     }
-    destroy_handler(event, None)
+    handler(event, None)
 
 
 def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_not_set():
     event = {
         "command": "destroy",
     }
-    destroy_handler(event, None)
+    handler(event, None)
 
 
 def run_destroy_command_with_a_valid_utc_timestamp_in_the_future():
@@ -134,14 +142,14 @@ def run_destroy_command_with_a_valid_utc_timestamp_in_the_future():
         "command": "destroy",
         "destroy_at_utc_timestamp": "2030-04-12T23:59:59.999999+00:00",
     }
-    destroy_handler(event, None)
+    handler(event, None)
 
 
 def run_deploy_command():
     event = {
         "command": "deploy",
     }
-    deploy_handler(event, None)
+    handler(event, None)
 
 
 def run_deploy_command_with_full_version():
@@ -149,7 +157,7 @@ def run_deploy_command_with_full_version():
         "command": "deploy",
         "version": "1.8.8",
     }
-    deploy_handler(event, None)
+    handler(event, None)
 
 
 def run_deploy_command_with_major_version():
@@ -157,7 +165,7 @@ def run_deploy_command_with_major_version():
         "command": "deploy",
         "version": "1.19",
     }
-    deploy_handler(event, None)
+    handler(event, None)
 
 
 def raise_value_error_when_command_is_deploy_but_version_is_misformatted():
@@ -165,7 +173,7 @@ def raise_value_error_when_command_is_deploy_but_version_is_misformatted():
         "command": "deploy",
         "version": "1",
     }
-    deploy_handler(event, None)
+    handler(event, None)
 
 
 @contextmanager
@@ -192,7 +200,7 @@ if __name__ == "__main__":
     # expect error if version misformatted
     with should_raise_value_error():
         raise_value_error_when_command_is_deploy_but_version_is_misformatted()
-    
+
     # expect success when command is destroy, and destroy_at_utc_timestamp is set to a valid ISO formatted timestamp string in the future
     run_destroy_command_with_a_valid_utc_timestamp_in_the_future()
 
