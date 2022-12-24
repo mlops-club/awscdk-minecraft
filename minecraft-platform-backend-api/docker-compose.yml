@@ -10,7 +10,9 @@ services:
     environment:
       - AWS_PROFILE=mlops-club
       - DEV_PORT=8000
-      - DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN=arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachineawscdkminecraftProvisionMcSta-aDmssJYgrn9o
-      - ENVIRONMENT=dev
+      - STATE_MACHINE_ARN=arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachine10154FE5-7A5lw7MAZmIw
+      - ENVIRONMENT=development
+      - CLOUD_FORMATION_STACK_NAME=awscdk-minecraft-server
+      - CLOUD_FORMATION_SERVER_IP_OUTPUT_KEY_NAME=MinecraftServerIp
 
 # Get a valid requet to got from our frontend to back end

@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "production"] = "development"
 
-    provision_minecraft_server__state_machine__arn: str
+    state_machine_arn: str
     """ARN of the state machine used to deploy/destroy a minecraft server."""
 
     frontend_cors_url: Optional[str] = None
@@ -44,8 +44,15 @@ class Settings(BaseSettings):
     or else browsers will block the frontend from recieving API responses.
     """
 
+    cloud_formation_server_ip_output_key_name: str
+    """The name of the output key name that that can be used to
+    fetch the ip address of the server from the cloud formation outputs."""
+
     dev_port: int = 8000
     """Port on which the FastAPI server will run in development mode on a developer's machine."""
+
+    cloud_formation_stack_name: str
+    """Stack name for the server cloudforamtion stack."""
 
     # def _(cls: Type[Settings], values: Dict[str, Any]):
     # validate frontend_cors_url; make sure it is set when environment is production

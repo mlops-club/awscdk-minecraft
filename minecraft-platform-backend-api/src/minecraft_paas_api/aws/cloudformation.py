@@ -57,3 +57,17 @@ def try_get_cloud_formation_stack_outputs(
     except cfn_client.exceptions.ClientError:
         outputs = None
     return outputs
+
+
+def get_cloud_form_output_value(cloud_form_stack_name: str, cloud_form_key_name: str) -> str:
+    """
+    Return the cloud form output value for the provided output name.
+
+    :param cloud_form_stack_name: name of the cloud formation stack
+    :param cloud_form_key_name: key for cloudformation output key value pair
+
+    :return: cloudformation output value for the provided key name
+    """
+    stack_outputs: Dict[str, str] = try_get_cloud_formation_stack_outputs(cloud_form_stack_name)
+    stack_value = stack_outputs[cloud_form_key_name]
+    return stack_value

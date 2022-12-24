@@ -19,9 +19,7 @@ async def deploy(request: Request):
     app_state = request.app.state
     settings: Settings = app_state.settings
     data = {"command": "deploy"}
-    return trigger_state_machine(
-        payload=data, state_machine_arn=settings.provision_minecraft_server__state_machine__arn
-    )
+    return trigger_state_machine(payload=data, state_machine_arn=settings.state_machine_arn)
 
 
 @ROUTER.get("/destroy")
@@ -30,6 +28,4 @@ async def destroy(request: Request):
     app_state = request.app.state
     settings: Settings = app_state.settings
     data = {"command": "destroy"}
-    return trigger_state_machine(
-        payload=data, state_machine_arn=settings.provision_minecraft_server__state_machine__arn
-    )
+    return trigger_state_machine(payload=data, state_machine_arn=settings.state_machine_arn)
