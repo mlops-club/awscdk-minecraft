@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "production"] = "development"
 
-    provision_minecraft_server__state_machine__arn: str
+    state_machine_arn: str
     """ARN of the state machine used to deploy/destroy a minecraft server."""
 
     frontend_cors_url: Optional[str] = None
@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     or else browsers will block the frontend from recieving API responses.
     """
 
-    cloud_form_server_ip_output_key_name: str
+    cloud_formation_server_ip_output_key_name: str
     """The name of the output key name that that can be used to
     fetch the ip address of the server from the cloud formation outputs."""
 
