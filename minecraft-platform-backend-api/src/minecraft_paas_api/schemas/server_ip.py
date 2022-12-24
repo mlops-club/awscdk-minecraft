@@ -2,10 +2,10 @@
 
 import ipaddress
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ServerIpSchema(BaseModel):
-    """Class defines the return schema for returnign the IP address of the server."""
+    """Response model for the `/minecraft_server_ip_address` endpoint."""
 
-    server_ip_address: ipaddress.IPv4Address
+    server_ip_address: ipaddress.IPv4Address = Field(description="IPv4 address of the minecraft server.")
