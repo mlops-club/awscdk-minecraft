@@ -6,30 +6,48 @@ from typing import Dict, Literal, Optional
 from pydantic import BaseModel, validator
 
 
-def handler(event: Dict[str, str], context) -> Dict[str, str]:
+def destroy_handler(event: Dict[str, str], context) -> Dict[str, str]:
+    """Validate the ``event`` state machine input object."""
+    print("event: ")
+    pprint(event)
+    DeProvisionMinecraftServerStateMachineInput(**event)
+    return event
+
+
+def deploy_handler(event: Dict[str, str], context) -> Dict[str, str]:
     """Validate the ``event`` state machine input object."""
     print("event: ")
     pprint(event)
     ProvisionMinecraftServerStateMachineInput(**event)
     return event
 
+def handler(event: Dict[str, str], conte)
 
 class ProvisionMinecraftServerStateMachineInput(BaseModel):
     """
 
     Attributes:
-        command: When the command is "deploy", a server will be provisioned or a no-op will occur if the server is already up.
+        version: The version of Minecraft to provision. Must be formatted as 'x.y.z' (integers, with 'z' optional).
+    """
 
+    version: str
+
+    # validator that parses version to a datetime object if a string is provided
+    @validator(
+        "version", pre=True, always=True
+    )  # TODO: do we need always=True here? will the field "version" fall back to an env var if not provided?
+    def validate_version(cls, version: str):
+        """Raise a validation error if version is not formatted as 'x.y.z' (integers, with 'z' optional)."""
+        assert_that_version_is_formatted_correctly(version=version)
+        return version
+
+
+class DeProvisionMinecraftServerStateMachineInput(BaseModel):
+    """
+
+    Attributes:
         destroy_at_utc_timestamp: When the command is destroy, "destroy_at_utc_timestamp" must be set to a timestamp in the future.
             This will be provided as a UTC ISO timestamp string. The server will be destroyed at that time.
-    """
-
-    command: Literal["deploy", "destroy"]
-    """
-    When the command is "deploy", a server will be provisioned or a no-op will occur if the server is already up.
-
-    When the command is destroy, "destroy_at_utc_timestamp" must be set to a timestamp in the future.
-    The server will be destroyed at that time.
     """
 
     destroy_at_utc_timestamp: Optional[datetime] = None
@@ -37,18 +55,12 @@ class ProvisionMinecraftServerStateMachineInput(BaseModel):
     # validator that parses destroy_at_utc_timestamp to a datetime object if a string is provided
     @validator("destroy_at_utc_timestamp", pre=True, always=True)
     def parse_destroy_at_utc_timestamp(  # pylint: disable=no-self-argument
-        cls, destroy_at_utc_timestamp: Optional[str] = None, values: Dict[str, str] = None
+        cls,
+        destroy_at_utc_timestamp: Optional[str] = None,
     ):
-        """Raise a validation error if command is destroy, but destroy_at_utc_timestamp is a valid ISO formatted timestamp string."""
-        if values["command"] == "destroy":
-            destroy_at_utc_timestamp = try_parse_datetime_from_iso_string(iso_string=destroy_at_utc_timestamp)
-            assert_datetime_is_in_future(timestamp=destroy_at_utc_timestamp)
-            return destroy_at_utc_timestamp
-
+        destroy_at_utc_timestamp = try_parse_datetime_from_iso_string(iso_string=destroy_at_utc_timestamp)
+        assert_datetime_is_in_future(timestamp=destroy_at_utc_timestamp)
         return destroy_at_utc_timestamp
-    
-    # assert that deploy command version is formatted correctly
-    @validator("version", always=True)  # TODO: do we need always=True here? will the f
 
 
 def try_parse_datetime_from_iso_string(iso_string: str) -> datetime:
@@ -73,13 +85,16 @@ def assert_datetime_is_in_future(timestamp: datetime):
 
 def assert_that_version_is_formatted_correctly(version: str):
     version_parts = version.split(".")
+    error_msg = f"version must be formatted as (integers) 'x.y.z' or 'x.y'. Got: {version}"
     if len(version_parts) != 3:
-        raise ValueError(f"version must be formatted as 'x.y.z'. Got: {version}")
+        raise ValueError(error_msg)
+    if len(version_parts) == 1:
+        raise ValueError(error_msg)
     for part in version_parts:
         try:
             int(part)
         except ValueError as err:
-            raise ValueError(f"version must be formatted as 'x.y.z'. Got: {version}") from err
+            raise ValueError(error_msg) from err
 
 
 def convert_zoned_datetime_to_utc_datetime(zoned_datetime: datetime) -> datetime:
@@ -96,7 +111,7 @@ def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_in
         "command": "destroy",
         "destroy_at_utc_timestamp": "2021-04-12T23:59:59.999999",
     }
-    handler(event, None)
+    destroy_handler(event, None)
 
 
 def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_not_a_valid_iso_formatted_timestamp_string():
@@ -104,14 +119,14 @@ def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_no
         "command": "destroy",
         "destroy_at_utc_timestamp": "2021-04-12T23:59:59.999999Z",
     }
-    handler(event, None)
+    destroy_handler(event, None)
 
 
 def raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_not_set():
     event = {
         "command": "destroy",
     }
-    handler(event, None)
+    destroy_handler(event, None)
 
 
 def run_destroy_command_with_a_valid_utc_timestamp_in_the_future():
@@ -119,22 +134,30 @@ def run_destroy_command_with_a_valid_utc_timestamp_in_the_future():
         "command": "destroy",
         "destroy_at_utc_timestamp": "2030-04-12T23:59:59.999999+00:00",
     }
-    handler(event, None)
+    destroy_handler(event, None)
 
 
 def run_deploy_command():
     event = {
         "command": "deploy",
     }
-    handler(event, None)
+    deploy_handler(event, None)
 
 
-def run_deploy_command_with_version():
+def run_deploy_command_with_full_version():
     event = {
         "command": "deploy",
         "version": "1.8.8",
     }
-    handler(event, None)
+    deploy_handler(event, None)
+
+
+def run_deploy_command_with_major_version():
+    event = {
+        "command": "deploy",
+        "version": "1.19",
+    }
+    deploy_handler(event, None)
 
 
 def raise_value_error_when_command_is_deploy_but_version_is_misformatted():
@@ -142,7 +165,7 @@ def raise_value_error_when_command_is_deploy_but_version_is_misformatted():
         "command": "deploy",
         "version": "1",
     }
-    handler(event, None)
+    deploy_handler(event, None)
 
 
 @contextmanager
@@ -162,12 +185,22 @@ if __name__ == "__main__":
     with should_raise_value_error():
         raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_in_the_past()
 
-    # # expect error when command is destroy, but destroy_at_utc_timestamp is not a valid ISO formatted timestamp string
+    # expect error when command is destroy, but destroy_at_utc_timestamp is not a valid ISO formatted timestamp string
     with should_raise_value_error():
         raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_not_a_valid_iso_formatted_timestamp_string()
 
+    # expect error if version misformatted
+    with should_raise_value_error():
+        raise_value_error_when_command_is_deploy_but_version_is_misformatted()
+    
     # expect success when command is destroy, and destroy_at_utc_timestamp is set to a valid ISO formatted timestamp string in the future
     run_destroy_command_with_a_valid_utc_timestamp_in_the_future()
 
-    # expect success when command is deploy, and destroy_at_utc_timestamp is not set
+    # expect success when command is deploy, and version is not set
     run_deploy_command()
+
+    # expect success when command is deploy, and version is valid
+    run_deploy_command_with_full_version()
+
+    # expect success when command is deploy and version is valid but 'z' is not set
+    run_deploy_command_with_major_version()
