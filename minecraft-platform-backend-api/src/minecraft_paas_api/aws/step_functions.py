@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
+from functools import lru_cache
 from typing import List, Optional
 
 import boto3
@@ -66,7 +68,8 @@ def get_latest_statemachine_execution(state_machine_arn: str) -> Optional["Execu
     return latest_execution
 
 
-def get_state_machine_execution_input(execution_arn: str) -> Optional[dict]:
+@lru_cache
+def describe_state_machine_execution(execution_arn: str) -> "DescribeExecutionOutputTypeDef":
     """
     Get the input of a state machine execution.
 
@@ -77,4 +80,37 @@ def get_state_machine_execution_input(execution_arn: str) -> Optional[dict]:
     response: "DescribeExecutionOutputTypeDef" = sfn_client.describe_execution(
         executionArn=execution_arn,
     )
-    return json.loads(response["input"])
+    return response
+
+
+def get_state_machine_execution_input(execution_arn: str) -> dict:
+    """
+    Get the input of a state machine execution.
+
+    :param execution_arn: The ARN of the execution to query.
+    :return: The input of the execution, or None if the execution does not exist.
+    """
+    execution: "DescribeExecutionOutputTypeDef" = describe_state_machine_execution(execution_arn)
+    return json.loads(execution["input"])
+
+
+def get_state_machine_execution_start_timestamp(execution_arn: str) -> datetime:
+    """
+    Get the start timestamp of a state machine execution.
+
+    :param execution_arn: The ARN of the execution to query.
+    :return: The start timestamp of the execution, or None if the execution does not exist.
+    """
+    execution: "DescribeExecutionOutputTypeDef" = describe_state_machine_execution(execution_arn)
+    return execution["startDate"]
+
+
+def get_state_machine_execution_end_timestamp(execution_arn: str) -> datetime:
+    """
+    Get the end timestamp of a state machine execution.
+
+    :param execution_arn: The ARN of the execution to query.
+    :return: The end timestamp of the execution, or None if the execution does not exist.
+    """
+    execution: "DescribeExecutionOutputTypeDef" = describe_state_machine_execution(execution_arn)
+    return execution["stopDate"]
