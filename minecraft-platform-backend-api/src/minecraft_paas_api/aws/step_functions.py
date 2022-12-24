@@ -41,12 +41,10 @@ def describe_state_machine(state_machine_arn: str) -> "DescribeStateMachineOutpu
     :param state_machine_arn: The ARN of the state machine to describe.
     """
     sfn_client: "SFNClient" = boto3.client("stepfunctions")
-    try:
-        response: "DescribeStateMachineOutputTypeDef" = sfn_client.describe_state_machine(
-            stateMachineArn=state_machine_arn
-        )
-    except (sfn_client.exceptions.ClientError, sfn_client.exceptions.InvalidArn) as error:
-        response = error.response
+    # TO DO: Add try except
+    response: "DescribeStateMachineOutputTypeDef" = sfn_client.describe_state_machine(
+        stateMachineArn=state_machine_arn
+    )
     return response
 
 
@@ -58,13 +56,11 @@ def get_latest_statemachine_execution(state_machine_arn: str) -> Optional["Execu
     :return: The latest execution of the state machine, or None if there are no executions.
     """
     sfn_client: "SFNClient" = boto3.client("stepfunctions")
-    try:
-        response: ListExecutionsOutputTypeDef = sfn_client.list_executions(
-            stateMachineArn=state_machine_arn,
-            maxResults=10,
-        )
-    except (sfn_client.exceptions.ClientError, sfn_client.exceptions.InvalidArn) as error:
-        return error.response
+    # TO DO: Add try except
+    response: ListExecutionsOutputTypeDef = sfn_client.list_executions(
+        stateMachineArn=state_machine_arn,
+        maxResults=10,
+    )
     executions: List["ExecutionListItemTypeDef"] = sorted(
         response["executions"], key=lambda x: x["startDate"], reverse=True
     )
@@ -80,6 +76,7 @@ def get_state_machine_execution_input(execution_arn: str) -> Optional[dict]:
     :return: The input of the execution, or None if the execution does not exist.
     """
     sfn_client: "SFNClient" = boto3.client("stepfunctions")
+    # TO DO: Add try except
     response: "DescribeExecutionOutputTypeDef" = sfn_client.describe_execution(
         executionArn=execution_arn,
     )

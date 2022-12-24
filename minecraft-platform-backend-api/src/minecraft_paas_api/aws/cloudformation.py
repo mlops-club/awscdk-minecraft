@@ -69,9 +69,5 @@ def get_cloud_form_output_value(cloud_form_stack_name: str, cloud_form_key_name:
     :return: cloudformation output value for the provided key name
     """
     stack_outputs: Dict[str, str] = try_get_cloud_formation_stack_outputs(cloud_form_stack_name)
-    if not stack_outputs:
-        return (
-            f"Stack with '{cloud_form_stack_name}' or stack output key name "
-            f"'{cloud_form_key_name}' does not exist."
-        )
-    return stack_outputs[cloud_form_key_name]
+    stack_value = stack_outputs[cloud_form_key_name]
+    return stack_value
