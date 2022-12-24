@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     dev_port: int = 8000
     """Port on which the FastAPI server will run in development mode on a developer's machine."""
 
+    cloud_formation_stack_name: str
+    """Stack name for the server cloudforamtion stack."""
+
     # def _(cls: Type[Settings], values: Dict[str, Any]):
     # validate frontend_cors_url; make sure it is set when environment is production
     # pylint: disable=no-self-argument
