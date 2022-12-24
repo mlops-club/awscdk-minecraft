@@ -41,10 +41,6 @@ class ProvisionMinecraftServerStateMachineInput(BaseModel):
     ):
         """Raise a validation error if command is destroy, but destroy_at_utc_timestamp is a valid ISO formatted timestamp string."""
         if values["command"] == "destroy":
-
-            if not destroy_at_utc_timestamp:
-                raise ValueError("'destroy_at_utc_timestamp' must be set when 'command' is destroy")
-
             destroy_at_utc_timestamp = try_parse_datetime_from_iso_string(iso_string=destroy_at_utc_timestamp)
             assert_datetime_is_in_future(timestamp=destroy_at_utc_timestamp)
             return destroy_at_utc_timestamp
@@ -139,10 +135,6 @@ if __name__ == "__main__":
     # # expect error when command is destroy, but destroy_at_utc_timestamp is not a valid ISO formatted timestamp string
     with should_raise_value_error():
         raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_not_a_valid_iso_formatted_timestamp_string()
-
-    # expect error when command is destroy, but destroy_at_utc_timestamp is not set
-    with should_raise_value_error():
-        raise_value_error_when_command_is_destroy_but_destroy_at_utc_timestamp_is_not_set()
 
     # expect success when command is destroy, and destroy_at_utc_timestamp is set to a valid ISO formatted timestamp string in the future
     run_destroy_command_with_a_valid_utc_timestamp_in_the_future()

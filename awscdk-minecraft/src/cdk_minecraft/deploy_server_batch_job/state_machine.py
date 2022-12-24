@@ -44,51 +44,90 @@ class ProvisionMinecraftServerStateMachine(Construct):
         construct_id: str,
         job_queue_arn: str,
         deploy_or_destroy_mc_server_job_definition_arn: str,
+        ensure_unique_id_names: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        self.namer = lambda name: f"{construct_id}-{name}"
+        self.namer = lambda name: f"{construct_id}-{name}" if ensure_unique_id_names else name
+        self.ensure_unique_id_names = ensure_unique_id_names
 
-        submit_cdk_deploy_batch_job: sfn_tasks.BatchSubmitJob = (
-            create__deploy_or_destroy__submit_batch_job_state(
-                scope=self,
-                command="deploy",
-                id_prefix=construct_id,
-                job_queue_arn=job_queue_arn,
-                deploy_or_destroy_mc_server_job_definition_arn=deploy_or_destroy_mc_server_job_definition_arn,
-            )
+        submit_cdk_deploy_batch_job: sfn_tasks.BatchSubmitJob = self.create__deploy__submit_batch_job_state(
+            state_machine_arn=deploy_or_destroy_mc_server_job_definition_arn,
+            job_queue_arn=job_queue_arn,
         )
 
-        submit_cdk_destroy_batch_job: sfn_tasks.BatchSubmitJob = (
-            create__deploy_or_destroy__submit_batch_job_state(
-                scope=self,
-                command="destroy",
-                id_prefix=construct_id,
-                job_queue_arn=job_queue_arn,
-                deploy_or_destroy_mc_server_job_definition_arn=deploy_or_destroy_mc_server_job_definition_arn,
-            )
+        submit_cdk_destroy_batch_job: sfn_tasks.BatchSubmitJob = self.create__destroy__submit_batch_job_state(
+            state_machine_arn=deploy_or_destroy_mc_server_job_definition_arn,
+            job_queue_arn=job_queue_arn,
         )
 
-        state_machine = create__validate_input__state(scope=self, id_prefix=construct_id).next(
+        validate_execution_input: sfn_tasks.LambdaInvoke = create__validate_input__state(
+            scope=self, id_prefix=construct_id
+        )
+
+        # destroy the server now if $.destroy_at_utc_timestamp is NOT present, otherwise wait until the timestamp
+        destroy_server_now_or_at_timestamp = (
             sfn.Choice(
                 self,
-                id=self.namer("ChooseCdkDeployOrDestroy"),
+                id=self.namer("Destroy Server Now or at Timestamp"),
+            )
+            .when(
+                condition=sfn.Condition.is_present("$.destroy_at_utc_timestamp"),
+                next=sfn.Wait(
+                    self,
+                    id=self.namer("Wait until destroy_at_utc_timestamp"),
+                    time=sfn.WaitTime.timestamp_path("$.destroy_at_utc_timestamp"),
+                ).next(submit_cdk_destroy_batch_job),
+            )
+            .when(
+                condition=sfn.Condition.is_not_present("$.destroy_at_utc_timestamp"),
+                next=sfn.Pass(self, "Pass and Destroy Now").next(submit_cdk_destroy_batch_job),
+            )
+        )
+
+        deploy_or_destroy_server = (
+            sfn.Choice(
+                self,
+                id=self.namer("Deploy or Destroy"),
             )
             .when(
                 condition=sfn.Condition.string_equals("$.command", "deploy"), next=submit_cdk_deploy_batch_job
             )
             .when(
                 condition=sfn.Condition.string_equals("$.command", "destroy"),
-                next=submit_cdk_destroy_batch_job,
+                next=destroy_server_now_or_at_timestamp,
             )
         )
 
         self.state_machine = sfn.StateMachine(
             scope=self,
             id=self.namer("StateMachine"),
-            definition=state_machine,
+            definition=validate_execution_input.next(deploy_or_destroy_server),
             # logs=sfn.LogOptions(),
             role=None,
+        )
+
+    # method for submit_cdk_deploy_batch_job
+    def create__deploy__submit_batch_job_state(
+        self, state_machine_arn: str, job_queue_arn: str
+    ) -> sfn_tasks.BatchSubmitJob:
+        return create__deploy_or_destroy__submit_batch_job_state(
+            scope=self,
+            command="deploy",
+            id_prefix=self.node.id if self.ensure_unique_id_names else "",
+            job_queue_arn=job_queue_arn,
+            deploy_or_destroy_mc_server_job_definition_arn=state_machine_arn,
+        )
+
+    def create__destroy__submit_batch_job_state(
+        self, state_machine_arn: str, job_queue_arn: str
+    ) -> sfn_tasks.BatchSubmitJob:
+        return create__deploy_or_destroy__submit_batch_job_state(
+            scope=self,
+            command="destroy",
+            id_prefix=self.node.id if self.ensure_unique_id_names else "",
+            job_queue_arn=job_queue_arn,
+            deploy_or_destroy_mc_server_job_definition_arn=state_machine_arn,
         )
 
 
@@ -150,7 +189,6 @@ def create__deploy_or_destroy__submit_batch_job_state(
 
 def create__validate_input__state(scope: Construct, id_prefix: str) -> sfn_tasks.LambdaInvoke:
     """Return a task that validates the execution input of the provision server state machine."""
-
     validate_input_fn: lambda_.Function = (
         make_lambda_that_validates_input_of_the_provision_server_state_machine(scope=scope, id_prefix=id_prefix)
     )
