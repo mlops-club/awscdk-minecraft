@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     or else browsers will block the frontend from recieving API responses.
     """
 
+    cloud_form_server_ip_output_key_name: str
+    """The name of the output key name that that can be used to
+    fetch the ip address of the server from the cloud formation outputs."""
+
     dev_port: int = 8000
     """Port on which the FastAPI server will run in development mode on a developer's machine."""
 
