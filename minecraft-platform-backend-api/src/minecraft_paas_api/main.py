@@ -61,12 +61,16 @@ def create_app(
         docs_url="/",
         redoc_url=None,
     )
+
+    # app.state comes from starlette
     app.state.settings = settings
     app.state.services = Services()
 
     # configure startup behavior: initialize services on startup
     @app.on_event("startup")
     async def on_startup():
+        """Initialize each service."""
+        # calls to services init methods should be made here
         print(settings.json())
 
     # add routes

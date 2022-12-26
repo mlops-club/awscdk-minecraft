@@ -10,7 +10,6 @@ AWS_REGION = os.environ["AWS_REGION"]
 AWS_ACCOUNT_ID = os.environ["AWS_ACCOUNT_ID"]
 MINECRAFT_SERVER_VERSION = os.environ.get("MINECRAFT_SERVER_VERSION", "1.19.3")
 
-
 print(f"[{datetime.now()}] Running app.py for Account {AWS_ACCOUNT_ID}, Region {AWS_REGION}")
 
 # for development, use account/region from CDK CLI

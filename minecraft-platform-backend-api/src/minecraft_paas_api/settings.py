@@ -29,7 +29,7 @@ class Settings(BaseSettings):
         https://docs.pydantic.dev/usage/settings/
         """
 
-        # causes attriutes of Settings to be read from environment variables; ignoring case
+        # causes attributes of Settings to be read from environment variables; ignoring case
         case_sensitive = False
 
     environment: Literal["development", "production"] = "development"

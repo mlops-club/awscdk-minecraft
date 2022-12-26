@@ -20,6 +20,7 @@ class MinecraftPaaSRestApi(Construct):
         scope: Construct,
         construct_id: str,
         provision_server_state_machine_arn: str,
+        deprovision_server_state_machine_arn: str,
         # authorizer: apigw.CfnAuthorizer,
         frontend_cors_url: str,
         **kwargs,
@@ -33,6 +34,7 @@ class MinecraftPaaSRestApi(Construct):
             scope=self,
             id_prefix=construct_id,
             provision_server_state_machine_arn=provision_server_state_machine_arn,
+            deprovision_server_state_machine_arn=deprovision_server_state_machine_arn,
             frontend_cors_url=frontend_cors_url,
         )
 
@@ -61,6 +63,7 @@ def make_fast_api_function(
     scope: Construct,
     id_prefix: str,
     provision_server_state_machine_arn: str,
+    deprovision_server_state_machine_arn: str,
     frontend_cors_url: str,
 ) -> lambda_.Function:
     """
@@ -118,6 +121,7 @@ def make_fast_api_function(
         ),
         environment={
             "DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": provision_server_state_machine_arn,
+            "DESTROY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": deprovision_server_state_machine_arn,
             "FRONTEND_CORS_URL": frontend_cors_url,
             "ENVIRONMENT": "prod",
         },
