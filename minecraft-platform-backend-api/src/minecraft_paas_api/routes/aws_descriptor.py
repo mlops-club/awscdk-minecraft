@@ -39,7 +39,7 @@ def get_statemachine(request: Request):
     """Get the latest execution of a state machine."""
     settings: Settings = load_settings_from_request_state(request)
     latest_execution: Optional[dict] = get_latest_statemachine_execution(
-        state_machine_arn=settings.state_machine_arn
+        state_machine_arn=settings.deploy_server_step_functions_state_machine_arn
     )
 
     if latest_execution:
@@ -54,7 +54,7 @@ def get_statemachine(request: Request):
 def get_state_machine_status(request: Request):
     """Get the state machine status."""
     settings: Settings = load_settings_from_request_state(request)
-    return describe_state_machine(state_machine_arn=settings.state_machine_arn)
+    return describe_state_machine(state_machine_arn=settings.deploy_server_step_functions_state_machine_arn)
 
 
 @ROUTER.get("/minecraft-server-ip-address", response_model=ServerIpSchema)

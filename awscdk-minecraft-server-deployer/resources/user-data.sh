@@ -3,6 +3,10 @@
 # print the commands this script runs as they are executed
 set -x
 
+export WORKDIR=/minecraft
+mkdir -p "$WORKDIR"
+cd "$WORKDIR"
+
 #########################################
 # --- Install CLI tool dependencies --- #
 #########################################
@@ -23,7 +27,7 @@ yum install -y python3
 pip3 install awscli --upgrade --user
 
 # prepare a docker-compose.yml that runs the
-cat << EOF > /home/ec2-user/docker-compose.yml
+cat << EOF > "$WORKDIR/docker-compose.yml"
 version: '3.7'
 services:
     minecraft:
@@ -33,8 +37,8 @@ services:
         ports:
             - "25565:25565"
         environment:
-            EULA: TRUE
-            TYPE: PAPER
+            EULA: "TRUE"
+            TYPE: "PAPER"
             VERSION: "$MINECRAFT_SERVER_SEMANTIC_VERSION"
         networks:
         - minecraft-server
@@ -52,11 +56,6 @@ EOF
 # --- Start up the with docker swarm --- #
 ##########################################
 
-cd /home/ec2-user
-
 # create a docker stack
 # docker network create minecraft-server
 docker stack deploy -c docker-compose.yml minecraft
-
-chmod +x /home/ec2-user/setup.sh
-/home/ec2-user/setup.sh

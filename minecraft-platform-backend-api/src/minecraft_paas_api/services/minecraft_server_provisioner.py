@@ -16,7 +16,7 @@ class MinecraftServerProvisioner(IService):
     @classmethod
     def from_settings(cls, settings: Settings) -> MinecraftServerProvisioner:
         """Set the arn number for the state machine."""
-        return cls(provisioner_state_machine_arn=settings.state_machine_arn)
+        return cls(provisioner_state_machine_arn=settings.deploy_server_step_functions_state_machine_arn)
 
     def start_server_for_n_minutes(self, minutes_until_stop_server: int) -> None:
         """Start and run the server for n number of minutes."""

@@ -10,11 +10,14 @@ from aws_cdk import CfnOutput, Duration, Stack
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
 from aws_prototyping_sdk.static_website import StaticWebsite
+from cdk_minecraft.deploy_server_batch_job.deprovision_state_machine import (
+    DeprovisionMinecraftServerStateMachine,
+)
 from cdk_minecraft.deploy_server_batch_job.job_definition import (
     make_minecraft_ec2_deployment__batch_job_definition,
 )
 from cdk_minecraft.deploy_server_batch_job.job_queue import BatchJobQueue
-from cdk_minecraft.deploy_server_batch_job.state_machine import ProvisionMinecraftServerStateMachine
+from cdk_minecraft.deploy_server_batch_job.provision_state_machine import ProvisionMinecraftServerStateMachine
 from cdk_minecraft.frontend import (
     create_config_json_file_in_static_site_s3_bucket,
     make_minecraft_platform_frontend_static_website,
@@ -60,7 +63,14 @@ class MinecraftPaasStack(Stack):
             scope=self,
             construct_id=f"{construct_id}ProvisionMcStateMachine",
             job_queue_arn=job_queue.job_queue_arn,
-            deploy_or_destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
+            deploy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
+        )
+
+        mc_destruction_state_machine = DeprovisionMinecraftServerStateMachine(
+            scope=self,
+            construct_id=f"{construct_id}DeprovisionMcStateMachine",
+            job_queue_arn=job_queue.job_queue_arn,
+            destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
         )
 
         frontend_static_site: StaticWebsite = make_minecraft_platform_frontend_static_website(
@@ -83,12 +93,14 @@ class MinecraftPaasStack(Stack):
             scope=self,
             construct_id="MinecraftPaaSRestAPI",
             provision_server_state_machine_arn=mc_deployment_state_machine.state_machine.state_machine_arn,
+            deprovision_server_state_machine_arn=mc_destruction_state_machine.state_machine.state_machine_arn,
             frontend_cors_url=frontend_url,
             # authorizer=authorizer,
         )
 
         # add role to lambda to allow it to start the state machine
         mc_deployment_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
+        mc_destruction_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
 
         create_config_json_file_in_static_site_s3_bucket(
             scope=self,
@@ -137,8 +149,13 @@ class MinecraftPaasStack(Stack):
         )
         CfnOutput(
             scope=self,
-            id="StateMachineArn",
+            id="DeployStateMachineArn",
             value=mc_deployment_state_machine.state_machine.state_machine_arn,
+        )
+        CfnOutput(
+            scope=self,
+            id="DestroyStateMachineArn",
+            value=mc_destruction_state_machine.state_machine.state_machine_arn,
         )
 
         # pass the endpoint of the state machine to the lambda

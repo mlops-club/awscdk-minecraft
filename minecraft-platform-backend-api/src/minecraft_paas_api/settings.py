@@ -29,13 +29,16 @@ class Settings(BaseSettings):
         https://docs.pydantic.dev/usage/settings/
         """
 
-        # causes attriutes of Settings to be read from environment variables; ignoring case
+        # causes attributes of Settings to be read from environment variables; ignoring case
         case_sensitive = False
 
     environment: Literal["development", "production"] = "development"
 
-    state_machine_arn: str
-    """ARN of the state machine used to deploy/destroy a minecraft server."""
+    deploy_server_step_functions_state_machine_arn: str
+    """ARN of the state machine used to deploy a minecraft server."""
+
+    destroy_server_step_functions_state_machine_arn: str
+    """ARN of the state machine used to destroy a minecraft server."""
 
     frontend_cors_url: Optional[str] = None
     """
