@@ -34,10 +34,10 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "production"] = "development"
 
-    deploy_server_step_functions_state_machine_arn: str
+    deploy_server_state_machine_arn: str
     """ARN of the state machine used to deploy a minecraft server."""
 
-    destroy_server_step_functions_state_machine_arn: str
+    destroy_server_state_machine_arn: str
     """ARN of the state machine used to destroy a minecraft server."""
 
     frontend_cors_url: Optional[str] = None

@@ -1,11 +1,9 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from minecraft_paas_api.aws.cloudformation import get_cloud_form_output_value
 from minecraft_paas_api.aws.step_functions import describe_state_machine, get_latest_statemachine_execution
-from minecraft_paas_api.schemas.server_ip import ServerIpSchema
 from minecraft_paas_api.settings import Settings
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
@@ -39,7 +37,7 @@ def get_statemachine(request: Request):
     """Get the latest execution of a state machine."""
     settings: Settings = load_settings_from_request_state(request)
     latest_execution: Optional[dict] = get_latest_statemachine_execution(
-        state_machine_arn=settings.deploy_server_step_functions_state_machine_arn
+        state_machine_arn=settings.deploy_server_state_machine_arn
     )
 
     if latest_execution:
@@ -54,19 +52,4 @@ def get_statemachine(request: Request):
 def get_state_machine_status(request: Request):
     """Get the state machine status."""
     settings: Settings = load_settings_from_request_state(request)
-    return describe_state_machine(state_machine_arn=settings.deploy_server_step_functions_state_machine_arn)
-
-
-@ROUTER.get("/minecraft-server-ip-address", response_model=ServerIpSchema)
-def get_minecraft_server_ip_address(request: Request):
-    """Get the minecraft server ip address."""
-    settings: Settings = load_settings_from_request_state(request)
-    try:
-        response_dict = {
-            "server_ip_address": get_cloud_form_output_value(
-                settings.cloud_formation_stack_name, settings.cloud_formation_server_ip_output_key_name
-            )
-        }
-    except TypeError as exception:
-        raise HTTPException(status_code=404, detail="Error retrieving server ip address.") from exception
-    return response_dict
+    return describe_state_machine(state_machine_arn=settings.deploy_server_state_machine_arn)
