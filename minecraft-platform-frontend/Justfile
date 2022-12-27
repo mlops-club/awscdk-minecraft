@@ -1,0 +1,13 @@
+CLIENT_CODE_DIR := "./src/api"
+
+generate-client-code: cleanup-client-code
+	npm exec -- openapi-generator-cli generate \
+		--input-spec http://localhost:8000/openapi.json \
+		--generator-name typescript-axios \
+		--output {{CLIENT_CODE_DIR}}
+
+cleanup-client-code:
+	rm -rf {{CLIENT_CODE_DIR}}
+
+help--generate-client-code:
+	npm exec -- openapi-generator-cli help generate

@@ -52,7 +52,7 @@ cdk-deploy: #require-venv
             --profile {{AWS_PROFILE}} \
             --require-approval any-change \
             --region {{AWS_REGION}} \
-            --app "python app.py"
+            --app "python app.py" --hotswap
 
 cdk-diff: #require-venv
     cd {{CDK_PLATFORM_DIR}} \
@@ -222,6 +222,10 @@ build-python-package: clean
     mv ${BUILD_DIR}/dist/ .
 
 
+build-static-site:
+    rm -rf {{STATIC_SITE_BUILD_OUTPUT_DIR}}
+    cd {{FRONTEND_DIR}} && docker-compose up
+
 publish-python-package-test:
     twine upload \
         --repository-url "https://test.pypi.org/legacy/" \
@@ -240,20 +244,20 @@ publish-python-package-prod:
 
 clean:
     rm -rf {{STATIC_SITE_BUILD_OUTPUT_DIR}}   || echo "no static site built"
-    rm -rf ./dist/       **/dist/             || echo "no matches found for **/dist/"
-    rm -rf .projen/      **/.projen/          || echo "no matches found for **/.projen/"
-    rm -rf ./build/      **/build/            || echo "no matches found for **/build/"
-    rm -rf ./build_/      **/build_/            || echo "no matches found for **/build/"
-    rm -rf ./cdk.out/    **/cdk.out/          || echo "no matches found for **/cdk.out/"
-    rm -rf ./.DS_Store/  **/.DS_Store         || echo "no matches found for **/.DS_Store"
-    rm -rf ./.mypy_cache/ **/.mypy_cache      || echo "no matches found for **/.mypy_cache"
+    rm -rf ./dist/          **/dist/             || echo "no matches found for **/dist/"
+    rm -rf .projen/         **/.projen/          || echo "no matches found for **/.projen/"
+    rm -rf ./build/         **/build/            || echo "no matches found for **/build/"
+    rm -rf ./build_/        **/build_/          || echo "no matches found for **/build/"
+    rm -rf ./cdk.out/       **/cdk.out/          || echo "no matches found for **/cdk.out/"
+    rm -rf ./.DS_Store/     **/.DS_Store         || echo "no matches found for **/.DS_Store"
+    rm -rf ./.mypy_cache/   **/.mypy_cache      || echo "no matches found for **/.mypy_cache"
     rm -rf ./.pytest_cache/ **/.pytest_cache  || echo "no matches found for **/*.pytest_cache"
-    rm -rf ./test/       **/test              || echo "no matches found for **/test"
-    rm -rf ./.coverage/  **/.coverage         || echo "no matches found for **/.coverage"
+    rm -rf ./test/          **/test              || echo "no matches found for **/test"
+    rm -rf ./.coverage/     **/.coverage         || echo "no matches found for **/.coverage"
     rm -rf ./.ipynb_checkpoints/ **/.ipynb_checkpoints || echo "no matches found for **/.ipynb_checkpoints"
-    rm -rf ./.pyc/       **/*.pyc             || echo "no matches found for **/*.pyc"
-    rm -rf ./__pycache__/ **/__pycache__      || echo "no matches found for **/__pycache__"
-    rm -rf ./*.egg-info/ **/*.egg-info        || echo "no matches found for **/*.egg-info"
-    rm cdk.context.json  **/*cdk.context.json || echo "no matches found for cdk.context.json"
+    rm -rf ./.pyc/          **/*.pyc             || echo "no matches found for **/*.pyc"
+    rm -rf ./__pycache__/   **/__pycache__      || echo "no matches found for **/__pycache__"
+    rm -rf ./*.egg-info/    **/*.egg-info        || echo "no matches found for **/*.egg-info"
+    rm cdk.context.json     **/*cdk.context.json || echo "no matches found for cdk.context.json"
 
 release-to-pypi: clean build-python-package publish-python-package-test publish-python-package-prod

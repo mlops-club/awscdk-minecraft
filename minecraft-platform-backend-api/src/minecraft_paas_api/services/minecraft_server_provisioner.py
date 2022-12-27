@@ -54,9 +54,9 @@ class MinecraftServerProvisioner(IService):
         """Stop the server."""
         return trigger_state_machine(state_machine_arn=self.destroyer_state_machine_arn, payload=None)
 
-    def stop_server_in_n_minutes(self, seconds_to_wait_until_stop_server: int) -> StartExecutionOutputTypeDef:
-        """Stop the server in n minutes."""
-        payload = {"wait_n_seconds_before_destroy": seconds_to_wait_until_stop_server}
+    def stop_server_in_n_minutes(self, minutes_to_wait_until_stop_server: int) -> StartExecutionOutputTypeDef:
+        """Stop the server in n seconds."""
+        payload = {"wait_n_seconds_before_destroy": minutes_to_wait_until_stop_server * 60}
         return trigger_state_machine(state_machine_arn=self.destroyer_state_machine_arn, payload=payload)
 
     def cancel_stop_server(self) -> None:
@@ -125,11 +125,16 @@ class MinecraftServerProvisioner(IService):
                 execution_start_time: datetime = get_state_machine_execution_start_timestamp(
                     execution_arn=last_destroyer_execution["executionArn"]
                 )
+
                 wait_n_seconds_before_destroy: int = execution_input["wait_n_seconds_before_destroy"]
                 scheduled_destroy_time: datetime = execution_start_time + timedelta(
-                    wait_n_seconds_before_destroy
+                    seconds=wait_n_seconds_before_destroy
                 )
-                if datetime.utcnow().timestamp() >= scheduled_destroy_time.timestamp():
+
+                scheduled_destroy_time: float = scheduled_destroy_time.timestamp()
+                now: float = datetime.now().timestamp()
+
+                if scheduled_destroy_time <= now:
                     return DeploymentStatus.SERVER_DEPROVISIONING
 
         # SERVER_PROVISIONING_FAILED or SERVER_DEPROVISIONING_FAILED
@@ -162,7 +167,5 @@ class MinecraftServerProvisioner(IService):
         # SERVER_OFFLINE
         if minecraft_server_stack_status in ["DELETE_COMPLETE", None]:
             return DeploymentStatus.SERVER_OFFLINE
-
-        return None
 
         # default? we should have returned something by now, but I can't prove that we have (yet)

@@ -1,5 +1,5 @@
 {
-    "backend_api_url": "http://localhost:8000",
+    "backend_api_url": "https://i5w46x04gk.execute-api.us-west-2.amazonaws.com/prod/",
     "cognito_user_pool_id": "us-west-2_vtfkVUVIc",
     "cognito_hosted_ui_app_client_id": "36s17sl59n6otjvadv33ctcaug",
     "cognito_hosted_ui_app_client_allowed_scopes": [

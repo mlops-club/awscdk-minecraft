@@ -9,6 +9,7 @@ from typing import List
 from aws_cdk import CfnOutput, Duration, Stack
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
+from aws_cdk import aws_iam as iam
 from aws_prototyping_sdk.static_website import StaticWebsite
 from cdk_minecraft.deploy_server_batch_job.deprovision_state_machine import (
     DeprovisionMinecraftServerStateMachine,
@@ -29,19 +30,18 @@ from constructs import Construct
 class MinecraftPaasStack(Stack):
     """Class to create a stack for the Minecraft PaaS.
 
-    Parameters
-    ----------
-    scope : Construct
-        The scope of the stack.
-    construct_id : str
-        The name of the stack, should be unique per App.
-    **kwargs
-        Any additional arguments to pass to the Stack constructor.
+    :param scope: The scope of the stack
+    :param construct_id: The ID of the stack
+    :param **kwargs: Additional arguments to pass to the stack
 
-    Attributes
-    ----------
-    job_queue : batch.JobQueue
-        The job queue.
+    :ivar job_queue: The job queue for the batch jobs
+    :ivar minecraft_server_deployer_job_definition: The job definition for the batch jobs
+    :ivar mc_deployment_state_machine: The state machine to deploy a Minecraft server
+    :ivar mc_destruction_state_machine: The state machine to destroy a Minecraft server
+    :ivar frontend_static_site: The static website for the frontend
+    :ivar frontend_url: The URL of the frontend
+    :ivar cognito_service: The Cognito service for the frontend
+    :ivar mc_rest_api: The REST API for the Minecraft PaaS
     """
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -101,6 +101,18 @@ class MinecraftPaasStack(Stack):
         # add role to lambda to allow it to start the state machine
         mc_deployment_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
         mc_destruction_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
+
+        # add the states:ListExecutions permission for the deployment state machine to the mc_rest_api role
+        grant_list_executions_to_role(
+            id_prefix=f"{self.node.id}-deploy-",
+            role=mc_rest_api.role,
+            state_machine_arn=mc_deployment_state_machine.state_machine.state_machine_arn,
+        )
+        grant_list_executions_to_role(
+            id_prefix=f"{self.node.id}-destroy-",
+            role=mc_rest_api.role,
+            state_machine_arn=mc_destruction_state_machine.state_machine.state_machine_arn,
+        )
 
         create_config_json_file_in_static_site_s3_bucket(
             scope=self,
@@ -163,6 +175,23 @@ class MinecraftPaasStack(Stack):
         # create a cognito service with user pool and plug that into the APIGateway
         # https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_cognito/UserPool.html
         # https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_apigateway/Authorizer.html
+
+
+def grant_list_executions_to_role(id_prefix: str, role: iam.Role, state_machine_arn: str) -> None:
+    """Add the states:ListExecutions permission for the deployment state machine to the mc_rest_api role."""
+    role.attach_inline_policy(
+        iam.Policy(
+            scope=role,
+            id=f"{id_prefix}-ListExecutionsPolicy",
+            statements=[
+                iam.PolicyStatement(
+                    actions=["states:ListExecutions"],
+                    resources=[state_machine_arn],
+                    effect=iam.Effect.ALLOW,
+                ),
+            ],
+        )
+    )
 
 
 class MinecraftCognitoConstruct(Construct):

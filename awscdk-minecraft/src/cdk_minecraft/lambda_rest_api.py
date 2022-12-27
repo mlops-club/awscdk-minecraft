@@ -9,8 +9,6 @@ from aws_cdk import aws_lambda as lambda_
 from cdk_minecraft.constants import MINECRAFT_PLATFORM_BACKEND_API__DIR
 from constructs import Construct
 
-# API_SUBDOMAIN = "api.rootski.io"
-
 
 class MinecraftPaaSRestApi(Construct):
     """An API Gateway mapping to a Lambda function with the backend code inside."""
@@ -120,10 +118,14 @@ def make_fast_api_function(
             ),
         ),
         environment={
-            "DEPLOY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": provision_server_state_machine_arn,
-            "DESTROY_SERVER_STEP_FUNCTIONS_STATE_MACHINE_ARN": deprovision_server_state_machine_arn,
+            "DEPLOY_SERVER_STATE_MACHINE_ARN": provision_server_state_machine_arn,
+            "DESTROY_SERVER_STATE_MACHINE_ARN": deprovision_server_state_machine_arn,
             "FRONTEND_CORS_URL": frontend_cors_url,
-            "ENVIRONMENT": "prod",
+            "ENVIRONMENT": "production",
+            # TODO: get these values from variables that are guaranteed to be of the
+            # correct values.
+            "CLOUD_FORMATION_SERVER_IP_OUTPUT_KEY_NAME": "MinecraftServerIp",
+            "CLOUD_FORMATION_STACK_NAME": "awscdk-minecraft-server",
         },
     )
 
