@@ -6,6 +6,7 @@ from minecraft_paas_api.schemas.server_ip import ServerIpSchema
 from minecraft_paas_api.schemas.server_status import DeploymentStatusResponse
 from minecraft_paas_api.services.minecraft_server_provisioner import MinecraftServerProvisioner
 from minecraft_paas_api.settings import Settings
+from starlette.status import HTTP_404_NOT_FOUND
 
 ROUTER = APIRouter()
 
@@ -18,67 +19,59 @@ def get_server_provisioner(request: Request) -> MinecraftServerProvisioner:
     return server_provisioner
 
 
-@ROUTER.get("/deploy")
-async def deploy(request: Request):
+@ROUTER.post("/minecraft-server")
+async def start_minecraft_server(request: Request):
     """Start the server if it is not already running."""
     server_provisioner = get_server_provisioner(request)
     return server_provisioner.start_server()
 
 
-@ROUTER.post("/destroy-server-after-seconds")
-async def destroy_after_seconds(request: Request, body: DestroyServer):
-    """Stop the server if it is running after specified amount of time."""
-    server_provisioner = get_server_provisioner(request)
-    return server_provisioner.stop_server_in_n_minutes(body.time_to_wait_before_destroying_server)
+@ROUTER.delete("/minecraft-server")
+async def stop_minecraft_server(request: Request, payload: DestroyServer):
+    """
+    Stop the server if it is running.
 
-
-@ROUTER.get("/destroy-server")
-async def destroy(request: Request):
-    """Stop the server if it is running."""
+    If the `wait_n_minutes_before_destroy` parameter is set, the server will be stopped after the specified amount of time.
+    Otherwise the server will be stopped immediately.
+    """
     server_provisioner = get_server_provisioner(request)
+    if payload.wait_n_minutes_before_destroy:
+        return server_provisioner.stop_server_in_n_minutes(payload.wait_n_minutes_before_destroy)
     return server_provisioner.stop_server()
 
 
-@ROUTER.get("/minecraft-server-ip-address", response_model=ServerIpSchema)
+@ROUTER.get("/minecraft-server/ip-address", response_model=ServerIpSchema)
 async def get_minecraft_server_ip_address(request: Request):
     """Get the minecraft server ip address."""
     server_provisioner = get_server_provisioner(request)
 
     try:
-        response_dict = {"server_ip_address": server_provisioner.get_server_ip_address()}
+        ip_address = server_provisioner.get_server_ip_address()
+        return ServerIpSchema(server_ip_address=ip_address)
     except TypeError as exception:
-        raise HTTPException(status_code=404, detail="Error retrieving server ip address.") from exception
-    return response_dict
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail="Error retrieving server ip address."
+        ) from exception
 
 
-@ROUTER.get("/deployment-status", response_model=DeploymentStatusResponse)
-async def describe_deployment_status(request: Request):
+@ROUTER.get("/minecraft-server/status", response_model=DeploymentStatusResponse)
+async def get_minecraft_server_deployment_status(request: Request):
     """
     Describe the current state of the minecraft deployment.
 
-    Deployment can be in any of 4 states:
+    Deployment can be in any of 6 states:
 
-    - Server is offline
-    - Server is provisioning
-    - Server is online
-    - Server is deprovisioning
-
-    Behind the scenes, these four states correspond with the following activiites:
-
-    - `SERVER_OFFLINE`: The `awscdk-minecraft-server` CloudFormation stack does not exist or is in a `DELETE_COMPLETE` state.
-    - `SERVER_PROVISIONING`: The latest execution of the `provision-minecraft-server` Step Function state machine
-      is in a `RUNNING` state.
-    - `SERVER_PROVISIONING_FAILED`: The latest execution of the `provision-minecraft-server` Step Function state machine
-      is in a `FAILED` state.
-    - `SERVER_ONLINE`: The `awscdk-minecraft-server` CloudFormation stack exists and is in a `CREATE_COMPLETE` state.
-    - `SERVER_DEPROVISIONING`: The latest execution of the `deprovision-minecraft-server` AWS Step Function state machine
-      is in a `RUNNING` state AND the execution does not have a `wait_n_minutes_before_deprovisioning` input parameter.
-    - `SERVER_DEPROVISIONING_FAILED`: The latest execution of the `deprovision-minecraft-server` AWS Step Function state machine.
+    | State | Description |
+    | --- | --- |
+    | `SERVER_OFFLINE` | The `awscdk-minecraft-server` CloudFormation stack does not exist or is in a `DELETE_COMPLETE` state. |
+    | `SERVER_PROVISIONING` | The latest execution of the `provision-minecraft-server` Step Function state machine is in a `RUNNING` state. |
+    | `SERVER_PROVISIONING_FAILED` | The latest execution of the `provision-minecraft-server` Step Function state machine is in a `FAILED` state. |
+    | `SERVER_ONLINE` | The `awscdk-minecraft-server` CloudFormation stack exists and is in a `CREATE_COMPLETE` state. |
+    | `SERVER_DEPROVISIONING` | The latest execution of the `deprovision-minecraft-server` AWS Step Function state machine is in a `RUNNING` state AND the execution does not have a `wait_n_minutes_before_deprovisioning` input parameter. |
+    | `SERVER_DEPROVISIONING_FAILED` | The latest execution of the `deprovision-minecraft-server` AWS Step Function state machine. |
 
     Depending on which `FAILED` state is the most recent, the status will be
     `SERVER_PROVISIONING_FAILED` or `SERVER_DEPROVISIONING_FAILED`.
-
-
     """
     server_provisioner = get_server_provisioner(request)
     response_dict = {"status": server_provisioner.get_minecraft_server_status()}

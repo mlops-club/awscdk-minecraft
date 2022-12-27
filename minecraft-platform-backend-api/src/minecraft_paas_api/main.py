@@ -16,7 +16,7 @@ from typing import Literal, Optional, TypedDict
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from minecraft_paas_api.routes import AWS_DESCRIPTOR_ROUTER, SERVER_ROUTER
+from minecraft_paas_api.routes import SERVER_ROUTER
 from minecraft_paas_api.settings import Settings
 
 ROUTER = APIRouter()
@@ -28,8 +28,8 @@ class ProvisionMinecraftServerPayload(TypedDict):
     command: Literal["create", "destroy"]
 
 
-@ROUTER.get("/status")
-async def status(request: Request):
+@ROUTER.get("/healthcheck")
+async def ping_this_api(request: Request):
     """Return 200 to demonstrate that this REST API is reachable and can execute."""
     # return all of request scope as a dictionary
     return str(request.scope)
@@ -55,14 +55,14 @@ def create_app(
         settings = Settings()
 
     app = FastAPI(
-        title="Minecraft API",
+        title="🎁 Minecraft Platform-as-a-Service API 🎄",
         description="A FastAPI app for the Minecraft API.",
         version="0.0.1",
         docs_url="/",
         redoc_url=None,
     )
 
-    # app.state comes from starlette
+    # we can put arbitrary attributes onto app.state and access them from the routes
     app.state.settings = settings
     app.state.services = Services()
 
@@ -75,8 +75,8 @@ def create_app(
 
     # add routes
     app.include_router(ROUTER, tags=["Admin"])
-    app.include_router(SERVER_ROUTER, tags=["SERVER"])
-    app.include_router(AWS_DESCRIPTOR_ROUTER, tags=["AWS"])
+    app.include_router(SERVER_ROUTER, tags=["Minecraft Server"])
+    # app.include_router(AWS_DESCRIPTOR_ROUTER, tags=["AWS"])
 
     # add authorized CORS origins (add these origins to response headers to
     # enable frontends at these origins to receive requests from this API)

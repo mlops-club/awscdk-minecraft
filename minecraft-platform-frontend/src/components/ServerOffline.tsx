@@ -16,7 +16,6 @@ const useStyles = makeStyles({
 
 const ServerOffline = () => {
 
-
     const classes = useStyles();
 
     const [hours, setHours] = React.useState(1);

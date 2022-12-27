@@ -1,11 +1,14 @@
 #!/bin/bash
 
+# This script is a templated string. All occurreces of "[dollar sign]<some var name>" will be substituted
+# with other values by the CDK code.
+
 # print the commands this script runs as they are executed
 set -x
 
 export WORKDIR=/minecraft
-mkdir -p "$WORKDIR"
-cd "$WORKDIR"
+mkdir -p "$$WORKDIR"
+cd "$$WORKDIR"
 
 #########################################
 # --- Install CLI tool dependencies --- #
@@ -27,7 +30,7 @@ yum install -y python3
 pip3 install awscli --upgrade --user
 
 # prepare a docker-compose.yml that runs the
-cat << EOF > "$WORKDIR/docker-compose.yml"
+cat << EOF > "$$WORKDIR/docker-compose.yml"
 version: '3.7'
 services:
     minecraft:
