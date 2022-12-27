@@ -5,27 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: FastAPI",
+            "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "minecraft_paas_api.main:create_default_app",
-                "--factory",
-                "--workers=1",
-                "--host=0.0.0.0",
-            ],
-            "jinja": true,
+            "program": "${file}",
+            "console": "integratedTerminal",
             "justMyCode": true,
-            "env": {
-                "AWS_PROFILE": "mlops-club",
-                "DEV_PORT": "8001",
-                "DEPLOY_SERVER_STATE_MACHINE_ARN": "arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftProvisionMcStateMachine10154FE5-7A5lw7MAZmIw",
-                "DESTROY_SERVER_STATE_MACHINE_ARN": "arn:aws:states:us-west-2:630013828440:stateMachine:awscdkminecraftDeprovisionMcStateMachineCA7C20D8-6hAlKIqfh4hR",
-                "ENVIRONMENT": "development",
-                "CLOUD_FORMATION_STACK_NAME": "awscdk-minecraft-server",
-                "CLOUD_FORMATION_SERVER_IP_OUTPUT_KEY_NAME": "MinecraftServerIp",
-            }
+            "python": "${command:python.interpreterPath}"
         }
     ]
 }

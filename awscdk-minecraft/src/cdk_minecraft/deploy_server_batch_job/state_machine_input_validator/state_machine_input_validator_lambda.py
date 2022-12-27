@@ -24,5 +24,12 @@ def make_lambda_that_validates_input_of_the_provision_server_state_machine(
         timeout=cdk.Duration.seconds(30),
         bundling=lambda_python.BundlingOptions(
             image=cdk.DockerImage.from_registry(image="lambci/lambda:build-python3.8"),
-        ),
+        )
+        # bundling=cdk.BundlingOptions(
+        #     # learn about this here:
+        #     # https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.aws_lambda/README.html#bundling-asset-code
+        #     # Using this lambci image makes it so that dependencies with C-binaries compile correctly for the lambda runtime.
+        #     # The AWS CDK python images were not doing this. Relevant dependencies are: pandas, asyncpg, and psycogp2-binary.
+        #     image=cdk.DockerImage.from_registry(image="lambci/lambda:build-python3.8"),
+        # ),
     )

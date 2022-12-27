@@ -9,16 +9,12 @@ from typing import List
 from aws_cdk import CfnOutput, Duration, Stack
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
-from aws_cdk import aws_iam as iam
 from aws_prototyping_sdk.static_website import StaticWebsite
-from cdk_minecraft.deploy_server_batch_job.deprovision_state_machine import (
-    DeprovisionMinecraftServerStateMachine,
-)
 from cdk_minecraft.deploy_server_batch_job.job_definition import (
     make_minecraft_ec2_deployment__batch_job_definition,
 )
 from cdk_minecraft.deploy_server_batch_job.job_queue import BatchJobQueue
-from cdk_minecraft.deploy_server_batch_job.provision_state_machine import ProvisionMinecraftServerStateMachine
+from cdk_minecraft.deploy_server_batch_job.state_machine import ProvisionMinecraftServerStateMachine
 from cdk_minecraft.frontend import (
     create_config_json_file_in_static_site_s3_bucket,
     make_minecraft_platform_frontend_static_website,
@@ -30,18 +26,19 @@ from constructs import Construct
 class MinecraftPaasStack(Stack):
     """Class to create a stack for the Minecraft PaaS.
 
-    :param scope: The scope of the stack
-    :param construct_id: The ID of the stack
-    :param **kwargs: Additional arguments to pass to the stack
+    Parameters
+    ----------
+    scope : Construct
+        The scope of the stack.
+    construct_id : str
+        The name of the stack, should be unique per App.
+    **kwargs
+        Any additional arguments to pass to the Stack constructor.
 
-    :ivar job_queue: The job queue for the batch jobs
-    :ivar minecraft_server_deployer_job_definition: The job definition for the batch jobs
-    :ivar mc_deployment_state_machine: The state machine to deploy a Minecraft server
-    :ivar mc_destruction_state_machine: The state machine to destroy a Minecraft server
-    :ivar frontend_static_site: The static website for the frontend
-    :ivar frontend_url: The URL of the frontend
-    :ivar cognito_service: The Cognito service for the frontend
-    :ivar mc_rest_api: The REST API for the Minecraft PaaS
+    Attributes
+    ----------
+    job_queue : batch.JobQueue
+        The job queue.
     """
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -63,14 +60,7 @@ class MinecraftPaasStack(Stack):
             scope=self,
             construct_id=f"{construct_id}ProvisionMcStateMachine",
             job_queue_arn=job_queue.job_queue_arn,
-            deploy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
-        )
-
-        mc_destruction_state_machine = DeprovisionMinecraftServerStateMachine(
-            scope=self,
-            construct_id=f"{construct_id}DeprovisionMcStateMachine",
-            job_queue_arn=job_queue.job_queue_arn,
-            destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
+            deploy_or_destroy_mc_server_job_definition_arn=minecraft_server_deployer_job_definition.job_definition_arn,
         )
 
         frontend_static_site: StaticWebsite = make_minecraft_platform_frontend_static_website(
@@ -93,26 +83,12 @@ class MinecraftPaasStack(Stack):
             scope=self,
             construct_id="MinecraftPaaSRestAPI",
             provision_server_state_machine_arn=mc_deployment_state_machine.state_machine.state_machine_arn,
-            deprovision_server_state_machine_arn=mc_destruction_state_machine.state_machine.state_machine_arn,
             frontend_cors_url=frontend_url,
             # authorizer=authorizer,
         )
 
         # add role to lambda to allow it to start the state machine
         mc_deployment_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
-        mc_destruction_state_machine.state_machine.grant_start_execution(mc_rest_api.role)
-
-        # add the states:ListExecutions permission for the deployment state machine to the mc_rest_api role
-        grant_list_executions_to_role(
-            id_prefix=f"{self.node.id}-deploy-",
-            role=mc_rest_api.role,
-            state_machine_arn=mc_deployment_state_machine.state_machine.state_machine_arn,
-        )
-        grant_list_executions_to_role(
-            id_prefix=f"{self.node.id}-destroy-",
-            role=mc_rest_api.role,
-            state_machine_arn=mc_destruction_state_machine.state_machine.state_machine_arn,
-        )
 
         create_config_json_file_in_static_site_s3_bucket(
             scope=self,
@@ -161,13 +137,8 @@ class MinecraftPaasStack(Stack):
         )
         CfnOutput(
             scope=self,
-            id="DeployStateMachineArn",
+            id="StateMachineArn",
             value=mc_deployment_state_machine.state_machine.state_machine_arn,
-        )
-        CfnOutput(
-            scope=self,
-            id="DestroyStateMachineArn",
-            value=mc_destruction_state_machine.state_machine.state_machine_arn,
         )
 
         # pass the endpoint of the state machine to the lambda
@@ -175,23 +146,6 @@ class MinecraftPaasStack(Stack):
         # create a cognito service with user pool and plug that into the APIGateway
         # https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_cognito/UserPool.html
         # https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_apigateway/Authorizer.html
-
-
-def grant_list_executions_to_role(id_prefix: str, role: iam.Role, state_machine_arn: str) -> None:
-    """Add the states:ListExecutions permission for the deployment state machine to the mc_rest_api role."""
-    role.attach_inline_policy(
-        iam.Policy(
-            scope=role,
-            id=f"{id_prefix}-ListExecutionsPolicy",
-            statements=[
-                iam.PolicyStatement(
-                    actions=["states:ListExecutions"],
-                    resources=[state_machine_arn],
-                    effect=iam.Effect.ALLOW,
-                ),
-            ],
-        )
-    )
 
 
 class MinecraftCognitoConstruct(Construct):

@@ -11,7 +11,7 @@ from aws_cdk import aws_iam as iam
 from constructs import Construct
 
 THIS_DIR = Path(__file__).parent
-USER_DATA_SH_TEMPLATE_FPATH = (THIS_DIR / "../../resources/user-data.template.sh").resolve()
+USER_DATA_SH_TEMPLATE_FPATH = (THIS_DIR / "../../resources/user-data.sh").resolve()
 
 
 def render_user_data_script(minecraft_semantic_version: str) -> str:
@@ -32,10 +32,6 @@ def render_user_data_script(minecraft_semantic_version: str) -> str:
             "MINECRAFT_SERVER_SEMANTIC_VERSION": minecraft_semantic_version,
         }
     )
-
-
-if __name__ == "__main__":
-    print(render_user_data_script(minecraft_semantic_version="1.16.5"))
 
 
 def add_alarms_to_stack(scope: Construct, ec2_instance_id: str) -> None:

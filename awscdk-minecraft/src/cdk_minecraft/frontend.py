@@ -1,7 +1,6 @@
 """This module contains utilities for deploying the Minecraft frontend website to an S3 bucket."""
 
 import hashlib
-import json
 
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_s3_deployment as s3_deployment
@@ -23,7 +22,7 @@ def create_config_json_file_in_static_site_s3_bucket(
     cognito_hosted_ui_fqdn: str,
     static_site_bucket: s3.Bucket,
     static_site_construct: Construct,
-) -> s3_deployment.BucketDeployment:
+):
     config_json_contents = {
         "backend_api_url": backend_url,
         "cognito_user_pool_id": cognito_user_pool_id,
@@ -37,8 +36,8 @@ def create_config_json_file_in_static_site_s3_bucket(
 
     config_json_s3_files = s3_deployment.BucketDeployment(
         scope=scope,
-        id=hash_string_deterministically(json.dumps(config_json_contents)),
-        # id="new-id",
+        # id=hash_string_deterministically(json.dumps(config_json_contents)),
+        id="new-id",
         sources=[
             s3_deployment.Source.json_data(
                 obj=config_json_contents,
@@ -55,8 +54,6 @@ def create_config_json_file_in_static_site_s3_bucket(
     # created by this function does not get overwritten by a config.json
     # in the static site files
     config_json_s3_files.node.add_dependency(static_site_construct)
-
-    return config_json_s3_files
 
 
 def make_minecraft_platform_frontend_static_website(

@@ -11,13 +11,20 @@ The Step Function will then be responsible for starting and stopping the server.
 """
 
 
+import os
 from dataclasses import dataclass
 from typing import Literal, Optional, TypedDict
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from minecraft_paas_api.routes import SERVER_ROUTER
+from minecraft_paas_api.aws_descriptor_routes import ROUTER as AWS_DESCRIPTOR_ROUTER
+from minecraft_paas_api.deploy_routes import ROUTER as DEPLOY_ROUTER
 from minecraft_paas_api.settings import Settings
+
+try:
+    pass
+except ImportError:
+    print("Warning: boto3-stubs[stepfunctions] not installed")
 
 ROUTER = APIRouter()
 
@@ -28,8 +35,8 @@ class ProvisionMinecraftServerPayload(TypedDict):
     command: Literal["create", "destroy"]
 
 
-@ROUTER.get("/healthcheck")
-async def ping_this_api(request: Request):
+@ROUTER.get("/status")
+async def status(request: Request):
     """Return 200 to demonstrate that this REST API is reachable and can execute."""
     # return all of request scope as a dictionary
     return str(request.scope)
@@ -55,28 +62,25 @@ def create_app(
         settings = Settings()
 
     app = FastAPI(
-        title="🎁 Minecraft Platform-as-a-Service API 🎄",
+        title="Minecraft API",
         description="A FastAPI app for the Minecraft API.",
         version="0.0.1",
         docs_url="/",
         redoc_url=None,
     )
-
-    # we can put arbitrary attributes onto app.state and access them from the routes
-    app.state.settings = settings
+    app.state.settings: Settings = settings
     app.state.services = Services()
 
     # configure startup behavior: initialize services on startup
     @app.on_event("startup")
     async def on_startup():
-        """Initialize each service."""
-        # calls to services init methods should be made here
-        print(settings.json())
+        print(dict(os.environ))
+        print("We're starting up!")
 
     # add routes
     app.include_router(ROUTER, tags=["Admin"])
-    app.include_router(SERVER_ROUTER, tags=["Minecraft Server"])
-    # app.include_router(AWS_DESCRIPTOR_ROUTER, tags=["AWS"])
+    app.include_router(DEPLOY_ROUTER, tags=["Deploy"])
+    app.include_router(AWS_DESCRIPTOR_ROUTER, tags=["AWS"])
 
     # add authorized CORS origins (add these origins to response headers to
     # enable frontends at these origins to receive requests from this API)

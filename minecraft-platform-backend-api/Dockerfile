@@ -14,7 +14,6 @@ FROM install
 LABEL api_stage=2
 COPY . .
 
-
 # Expose our access port
-EXPOSE ${DEV_PORT}
-CMD uvicorn "minecraft_paas_api.main:create_default_app" --reload --factory --workers 1 --host 0.0.0.0 --port ${DEV_PORT}
+EXPOSE 8000
+CMD python /app/src/minecraft_paas_api/main.py

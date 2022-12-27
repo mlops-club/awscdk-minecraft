@@ -29,16 +29,13 @@ class Settings(BaseSettings):
         https://docs.pydantic.dev/usage/settings/
         """
 
-        # causes attributes of Settings to be read from environment variables; ignoring case
+        # causes attriutes of Settings to be read from environment variables; ignoring case
         case_sensitive = False
 
-    environment: Literal["development", "production"] = "development"
+    environment: Literal["development", "production"]
 
-    deploy_server_state_machine_arn: str
-    """ARN of the state machine used to deploy a minecraft server."""
-
-    destroy_server_state_machine_arn: str
-    """ARN of the state machine used to destroy a minecraft server."""
+    provision_minecraft_server__state_machine__arn: str
+    """ARN of the state machine used to deploy/destroy a minecraft server."""
 
     frontend_cors_url: Optional[str] = None
     """
@@ -47,19 +44,11 @@ class Settings(BaseSettings):
     or else browsers will block the frontend from recieving API responses.
     """
 
-    cloud_formation_server_ip_output_key_name: str = "MinecraftServerIp"
-    """The name of the output key name that that can be used to
-    fetch the ip address of the server from the cloud formation outputs."""
-
     dev_port: int = 8000
     """Port on which the FastAPI server will run in development mode on a developer's machine."""
 
-    frontend_dev_port: int = 3000
-    """Port used for the frontend development server."""
-
-    cloud_formation_stack_name: str
-    """Stack name for the server cloudforamtion stack."""
-
+    # def _(cls: Type[Settings], values: Dict[str, Any]):
+    # validate frontend_cors_url; make sure it is set when environment is production
     # pylint: disable=no-self-argument
     @validator("frontend_cors_url", pre=True)  # noqa: R0201
     def validate_frontend_cors_url(cls, frontend_cors_url: Optional[str], values: Dict[str, Any]) -> str:
@@ -71,5 +60,5 @@ class Settings(BaseSettings):
     @property
     def allowed_cors_origins(self) -> List[str]:
         """Return a list of allowed CORS origins."""
-        origin_for_local_development = f"http://localhost:{self.frontend_dev_port}"
+        origin_for_local_development = f"http://localhost:{self.dev_port}"
         return [origin_for_local_development, self.frontend_cors_url]
