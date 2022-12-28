@@ -14,7 +14,7 @@ const Home = () => {
     const [config, setConfig] = React.useState<MinecraftFrontendConfig>();
     const [minecraftApi, setMinecraftApi] = React.useState<MinecraftServerApi | null>(null);
 
-    // fetch the global app config (rather than using redux, we'll use the Home component);
+    // fetch the global app config (rather than using redux, we'll use the Main component);
     // then configure the aws-amplify.Auth singleton for managing the current logged-in user
     useEffect(() => {
         fetchConfig().then((config: MinecraftFrontendConfig) => {

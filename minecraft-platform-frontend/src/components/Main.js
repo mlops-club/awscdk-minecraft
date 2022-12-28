@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useContext, useEffect } from 'react';
 import Box from '@mui/material/Box';
-import './Home.css';
+import './Main.css';
 import Navbar from "./Navbar";
 import ServerOnline from './ServerOnline/ServerOnline';
 import ServerOffline from './ServerOffline/ServerOffline';
@@ -11,7 +11,7 @@ import AddUser from './AddUser/AddUser';
 import AuthContext from "../store/auth-context";
 import CurrentPageContext from "../store/current-page-context";
 
-const Home = (props) => {
+const Main = (props) => {
   let server_offline = "Server Offline";
   let server_online = "Server Online";
   let server_provisioning = "Server Provisioning";
@@ -61,4 +61,4 @@ const Home = (props) => {
   );
 }
 
-export default Home
+export default Main

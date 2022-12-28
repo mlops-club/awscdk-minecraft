@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 // @ts-ignore
-import Home from './components/Home';
+import Main from './components/Main';
 import { AuthContextProvider } from './store/auth-context';
 import { CurrentPageContextProvider } from './store/current-page-context';
 
@@ -10,7 +10,7 @@ function App() {
     <div className="App" >
         <AuthContextProvider>
             <CurrentPageContextProvider>
-                <Home/>
+                <Main/>
             </CurrentPageContextProvider>
         </AuthContextProvider>
     </div >
