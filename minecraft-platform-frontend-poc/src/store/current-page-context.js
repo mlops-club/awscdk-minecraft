@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ServerOnline from '../components/ServerOnline/ServerOnline';
 import ServerOffline from '../components/ServerOffline/ServerOffline';
 import ServerProvisioning from "../components/ServerProvisioning/ServerProvisioning";
+import ServerDeprovisioning from "../components/ServerProvisioning/ServerDeprovisioning";
 import Login from '../components/Login/Login'
 import AddUser from '../components/AddUser/AddUser';
 
@@ -18,8 +19,8 @@ export const CurrentPageContextProvider = (props) => {
     login:{pageName:'login', htmlToRender:<Login/>},
     serverOffline:{pageName:'serverOffline', htmlToRender:<ServerOffline/>},
     serverOnline:{pageName:'serverOnline', htmlToRender:<ServerOnline/>},
-    serverProvisioning:{pageName:'serverProvisioning', htmlToRender:<ServerProvisioning/> },
-    serverDeprovisioning:{pageName:'serverDeprovisioning', htmlToRender:<ServerProvisioning/>}
+    serverProvisioning:{pageName:'serverProvisioning', htmlToRender:<ServerProvisioning/> ,completedSteps:0 },
+    serverDeprovisioning:{pageName:'serverDeprovisioning', htmlToRender:<ServerDeprovisioning/>, completedSteps:0}
   }
 
   function prepareCurrentPage(pageState){
@@ -29,12 +30,16 @@ export const CurrentPageContextProvider = (props) => {
 
   useEffect(() => {
     const storedUserLoggedInInformation = localStorage.getItem('currentPage');
-    if (pageStateDictionary.hasOwnProperty(storedUserLoggedInInformation) && false){
+    if (pageStateDictionary.hasOwnProperty(storedUserLoggedInInformation)){
       prepareCurrentPage(pageStateDictionary[storedUserLoggedInInformation]);
     } else {
       prepareCurrentPage(pageStateDictionary.serverOffline);
     }
   }, []);
+
+  setInterval(() => {
+      alert("cower");
+    }, 10000);
 
   const launchServer = (configurations) => {
     let numberMinutesToRunServer = configurations.numberMinutesToRunServer;

@@ -1,20 +1,17 @@
-import React, {useState} from 'react';
+import React, {useContext} from 'react';
 import './ServerUpdatePage.css';
 import Checkbox from '@mui/material/Checkbox';
 import LinearWithValueLabel from "../../UI/ProgressBar";
+import CurrentPageContext from "../../store/current-page-context";
 
 function ServerProvisioning(props){
-
-    const [StepsCompleted, setStepsCompleted] = useState(2);
-
-    const [CompletedList, setCompletedList] = useState([]);
-
+    const currentPageCtx = useContext(CurrentPageContext);
 
     return (
         <div className="serverLoadUpdate">
             {
                 props.steps.map((CompletedTaskText, i) => {
-                if (i < StepsCompleted) {
+                if (i < currentPageCtx.completedSteps) {
                   return (<div className="updateGroup">
                         <Checkbox checked />
                         <div>{CompletedTaskText}</div>
@@ -26,10 +23,8 @@ function ServerProvisioning(props){
                     </div>);
               })
             }
-            {/*<LinearWithValueLabel/>*/}
         </div>
     )
 }
 
 export default ServerProvisioning;
-
