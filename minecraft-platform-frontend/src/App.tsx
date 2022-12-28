@@ -1,22 +1,19 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-import axios from 'axios';
-// import material UI theme
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+// @ts-ignore
 import Home from './components/Home';
-// auth with aws cognito from amazon-cognito-identity-js
-import { config } from 'process';
-
-/* wrap app in material UI theme */
+import { AuthContextProvider } from './store/auth-context';
+import { CurrentPageContextProvider } from './store/current-page-context';
 
 function App() {
   return (
-    // <ThemeProvider theme={theme}>
     <div className="App" >
-      <Home />
+        <AuthContextProvider>
+            <CurrentPageContextProvider>
+                <Home/>
+            </CurrentPageContextProvider>
+        </AuthContextProvider>
     </div >
-    // </ThemeProvider>
   );
 }
 
