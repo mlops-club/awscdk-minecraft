@@ -7,6 +7,7 @@ from typing import List
 # coginto imports, user pool and client
 # imports for lambda functions and API Gateway
 from aws_cdk import CfnOutput, Duration, Stack
+from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
@@ -83,11 +84,11 @@ class MinecraftPaasStack(Stack):
         cognito_service = MinecraftCognitoConstruct(
             scope=self, construct_id="MinecraftCognitoService", frontend_url=frontend_url
         )
-        # authorizer = apigw.CognitoUserPoolsAuthorizer(
-        #     scope=self,
-        #     id="CognitoAuthorizer",
-        #     cognito_user_pools=[cognito_service.user_pool],
-        # )
+        authorizer = apigw.CognitoUserPoolsAuthorizer(
+            scope=self,
+            id="CognitoAuthorizer",
+            cognito_user_pools=[cognito_service.user_pool],
+        )
         # create lambda for the rest API and attach authorizer to API Gateway
         mc_rest_api = MinecraftPaaSRestApi(
             scope=self,
@@ -95,7 +96,7 @@ class MinecraftPaasStack(Stack):
             provision_server_state_machine_arn=mc_deployment_state_machine.state_machine.state_machine_arn,
             deprovision_server_state_machine_arn=mc_destruction_state_machine.state_machine.state_machine_arn,
             frontend_cors_url=frontend_url,
-            # authorizer=authorizer,
+            authorizer=authorizer,
         )
 
         # add role to lambda to allow it to start the state machine
@@ -117,7 +118,7 @@ class MinecraftPaasStack(Stack):
         create_config_json_file_in_static_site_s3_bucket(
             scope=self,
             id_prefix=construct_id,
-            backend_url=mc_rest_api.rest_api.url,
+            backend_url=mc_rest_api.url,
             cognito_app_client_id=cognito_service.client.user_pool_client_id,
             cognito_hosted_ui_app_client_allowed_scopes=cognito_service.allowed_oauth_scopes,
             cognito_user_pool_id=cognito_service.user_pool.user_pool_id,

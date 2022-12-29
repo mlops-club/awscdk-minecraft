@@ -1,6 +1,8 @@
 """Stack defining an API Gateway mapping to a Lambda function with the FastAPI app."""
 
 
+from textwrap import dedent
+
 import aws_cdk as cdk
 from aws_cdk import CfnOutput
 from aws_cdk import aws_apigateway as apigw
@@ -8,6 +10,8 @@ from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as lambda_
 from cdk_minecraft.constants import MINECRAFT_PLATFORM_BACKEND_API__DIR
 from constructs import Construct
+
+REACT_LOCALHOST = "http://localhost:3000"
 
 
 class MinecraftPaaSRestApi(Construct):
@@ -19,8 +23,8 @@ class MinecraftPaaSRestApi(Construct):
         construct_id: str,
         provision_server_state_machine_arn: str,
         deprovision_server_state_machine_arn: str,
-        # authorizer: apigw.CfnAuthorizer,
         frontend_cors_url: str,
+        authorizer: apigw.CfnAuthorizer = None,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -36,25 +40,109 @@ class MinecraftPaaSRestApi(Construct):
             frontend_cors_url=frontend_cors_url,
         )
 
+        api = apigw.RestApi(self, f"{construct_id}RestApi")
+        proxy: apigw.Resource = api.root.add_resource(path_part="{proxy+}")
+
+        proxy.add_method(
+            http_method="ANY",
+            integration=apigw.LambdaIntegration(
+                handler=fast_api_function,
+                proxy=True,
+            ),
+            authorizer=authorizer,
+        )
+
+        add_cors_options_method(resource=proxy, frontend_cors_url=frontend_cors_url)
+
         self.role: iam.Role = fast_api_function.role
+        self.url: str = api.url
 
-        #: API Gateway that proxies all incoming requests to the fast_api_function
-        self.rest_api = apigw.LambdaRestApi(
-            scope=self,
-            id="Endpoint",
-            handler=fast_api_function,
-            proxy=True,
-            # default_method_options=apigw.MethodOptions(
-            #     authorization_type=apigw.AuthorizationType.COGNITO,
-            #     authorizer=authorizer,
-            # ),
-        )
+        CfnOutput(self, "EndpointURL", value=api.url)
 
-        CfnOutput(
-            self,
-            "EndpointURL",
-            value=self.rest_api.url,
-        )
+
+def add_cors_options_method(
+    resource: apigw.Resource,
+    frontend_cors_url: str,
+) -> None:
+    """Add an OPTIONS method to the resource to allow CORS requests."""
+    resource.add_method(
+        http_method="OPTIONS",
+        integration=make_cors_preflight_mock_integration(frontend_cors_url=frontend_cors_url),
+        authorization_type=apigw.AuthorizationType.NONE,
+        method_responses=[
+            apigw.MethodResponse(
+                status_code="200",
+                response_parameters={
+                    # True means that the method response header will be passed through from the integration response.
+                    # Just because the MockIntegration returns values, does not mean those values make it
+                    # to the client making the request. Here, we must explicitly declare headers, payload fields,
+                    # etc. that we want to pass back to the user.
+                    "method.response.header.Access-Control-Allow-Headers": True,
+                    "method.response.header.Access-Control-Allow-Methods": True,
+                    "method.response.header.Access-Control-Allow-Origin": True,
+                    "method.response.header.Content-Type": True,
+                },
+            )
+        ],
+    )
+
+
+def make_cors_preflight_mock_integration(frontend_cors_url: str) -> apigw.MockIntegration:
+    """
+    Create a MockIntegration that will be used for the OPTIONS method to return correct CORS headers during the preflight request.
+
+    This web app helps you determine what your CORS setup should be for api gateway: https://cors.serverlessland.com/
+    """
+    mock_integration = apigw.MockIntegration(
+        passthrough_behavior=apigw.PassthroughBehavior.WHEN_NO_TEMPLATES,
+        request_templates={
+            "application/json": '{"statusCode": 200}',
+        },
+        integration_responses=[
+            apigw.IntegrationResponse(
+                status_code="200",
+                # response_parameters contains static values that are returned by the Mock integration
+                # at every single request. You can use this to set a response body, but in this case
+                # we are only setting headers.
+                response_parameters={
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                    "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE'",
+                    "method.response.header.Access-Control-Allow-Origin": f"'{frontend_cors_url}'",
+                    "method.response.header.Content-Type": "'application/json'",
+                },
+                response_templates={
+                    # API Gateway only supports specifying a single CORS origin for the Access-Control-Allow-Origin header;
+                    # but it's useful for development to include http://localhost:3000 so that we can hit the production
+                    # API from our local frontend. We can't do a comma-separated list of origins like "http://<prod url>,http://localhost:3000`",
+                    # API gateway only supports one specific origin or '*'--but '*' is not allowed when credentials are passed
+                    # with HTTP requests such as we are doing with AWS cognito.
+                    #
+                    # So, we use this template written with the "Apache Velocity Templating Language"
+                    # (similar to Jinja, but has syntax for setting variables). AWS exposes certain variables such as $ whose
+                    # values we can use in our template.
+                    #
+                    # This template transforms the headers/payload that come out of the MockIntegration. In this case,
+                    # it transforms the fixed content we hard coded in "response_parameters" ^^^. That way we can
+                    # choose which origin to return in the final response.
+                    "application/json": dedent(
+                        f"""\
+                        #set($origin = $input.params("Origin"))
+                        #if($origin == "")
+                            #set($origin = $input.params("origin"))
+                        #end
+                        #if($origin == "{REACT_LOCALHOST}" || $origin == "{frontend_cors_url}")
+                            #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin)
+                        #end
+                        """
+                    ),
+                },
+            )
+        ],
+        content_handling=apigw.ContentHandling.CONVERT_TO_TEXT,
+        credentials_passthrough=True,
+    )
+
+    return mock_integration
 
 
 def make_fast_api_function(

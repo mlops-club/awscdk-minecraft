@@ -126,7 +126,7 @@ export const getUserIdToken = async (): Promise<CognitoIdToken> => {
  */
 export const logAuthData = async () => {
   try {
-    const userIdToken = getUserIdToken();
+    const userIdToken = await getUserIdToken();
     console.log("current user id token", userIdToken);
   } catch (e) {
     console.log(e);
