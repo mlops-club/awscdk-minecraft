@@ -16,5 +16,5 @@ build
 *egg-info
 
 # ignore the generated static site; this folder is generated from the
-# minecraft-platform-frontend-poc/ package in the root of the project
+# minecraft-platform-frontend/ package in the root of the project
 src/cdk_minecraft/resources/minecraft-platform-frontend-static

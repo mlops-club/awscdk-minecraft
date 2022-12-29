@@ -7,4 +7,4 @@ RESOURCES_DIR = THIS_DIR / "resources"
 
 AWSCDK_MINECRAFT_SERVER_DEPLOYER__DIR = RESOURCES_DIR / "awscdk-minecraft-server-deployer"
 MINECRAFT_PLATFORM_BACKEND_API__DIR = RESOURCES_DIR / "minecraft-platform-backend-api"
-MINECRAFT_PLATFORM_FRONTEND_STATIC_WEBSITE__DIR = RESOURCES_DIR / "minecraft-platform-frontend-poc-static"
+MINECRAFT_PLATFORM_FRONTEND_STATIC_WEBSITE__DIR = RESOURCES_DIR / "minecraft-platform-frontend-static"
