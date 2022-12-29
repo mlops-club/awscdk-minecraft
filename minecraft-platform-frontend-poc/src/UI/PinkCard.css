@@ -1,0 +1,17 @@
+.PinkCard{
+    background-color: rgb(245, 187, 183);
+    width:70rem;
+    max-width: 90%;
+    height: 100%;
+    display:flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    padding: 20px;
+    color: #280e38;
+}
+
+.sectionHeader{
+    width: 100%;
+    text-align: left;
+    text-decoration: underline;
+}

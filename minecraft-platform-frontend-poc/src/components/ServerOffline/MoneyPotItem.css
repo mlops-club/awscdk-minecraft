@@ -1,0 +1,85 @@
+.pot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  margin: 1.5em;
+  background-color: #4b4b4b;
+}
+
+.pot-item__description {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-flow: column-reverse;
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.pot-item h2 {
+  font-size: 1rem;
+  flex: 1;
+  margin: 0 1rem;
+  color: white;
+}
+
+.pot-item__price {
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #40005d;
+  border: 1px solid white;
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+@media (min-width: 580px) {
+  .pot-item__description {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+  }
+
+  .pot-item__description h2 {
+    font-size: 1.25rem;
+  }
+
+  .pot-item__price {
+    font-size: 1.25rem;
+    padding: 0.5rem 1.5rem;
+  }
+}
+
+
+.pot-owner {
+  display: flex;
+  flex-direction: column;
+  width: 9rem;
+  height: 5.5rem;
+  border: 1px solid #ececec;
+  background-color: #2a2a2a;
+  color: white;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pot-owner__month {
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.pot-owner__year {
+  font-size: 0.75rem;
+}
+
+.pot-owner__day {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.AddFundsToPotButton{
+  background-color: darkolivegreen;
+}
