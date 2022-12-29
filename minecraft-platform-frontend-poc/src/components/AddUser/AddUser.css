@@ -1,0 +1,39 @@
+
+#AddServerFormEntries{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.AddServerFormGroup{
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+    font-weight: bold;
+    flex: 1;
+    margin: 0 1rem;
+    width: 900px;
+}
+
+.TextFormBox {
+    padding: 10px;
+}
+
+.Box{
+    width: auto;
+}
+
+.sectionHeader{
+    width: 100%;
+    text-align: left;
+    text-decoration: underline;
+}
+
+.AddServerFormGroup button {
+    background-color: #510674;
+}
+
+.AddServerFormGroup button:hover {
+    background-color: #7814ab;
+}
