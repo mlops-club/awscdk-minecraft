@@ -56,7 +56,7 @@ const Main = (props) => {
         <br></br>
         <br></br>
         {!authCtx.isLoggedIn && <Login></Login>}
-        {authCtx.isLoggedIn && currentPageCtx.currentPage}
+        {authCtx.isLoggedIn && currentPageCtx.currentPageState.currentPage}
     </Box>
   );
 }

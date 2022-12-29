@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import ServerOnline from '../components/ServerOnline/ServerOnline';
 import ServerOffline from '../components/ServerOffline/ServerOffline';
 import ServerProvisioning from "../components/ServerProvisioning/ServerProvisioning";
@@ -11,43 +11,53 @@ const CurrentPageContext = React.createContext({
   pageInformation:{}
 });
 
-export const CurrentPageContextProvider = (props) => {
-  const [currentPage, setCurrentPage] = useState(<div>placeholder</div>);
+function pageStateReducer(state, action){
 
-  let pageStateDictionary = {
+  localStorage.setItem('currentPage', action.pageName);
+
+  if (action.pageName === 'serverProvisioning'){
+      if (action.hasOwnProperty("completedSteps")){
+        state.pageStateData.serverProvisioning.completedSteps = action.completedSteps;
+      }
+      // state.currentPage = <ServerProvisioning completedSteps={state.pageStateData.serverProvisioning.completedSteps}/>;
+      state.currentPage = <ServerProvisioning completedSteps={state.pageStateData.serverProvisioning.completedSteps}/>;
+  } else {
+    state.currentPage = state.pageStateData[action.pageName].htmlToRender;
+  }
+  return state
+}
+
+export const CurrentPageContextProvider = (props) => {
+  const [currentPageState, updateCurrentPageState] = useReducer(pageStateReducer, {
+    currentPage: <div>placeholder</div>,
+    pageStateData:{
     addUser:{pageName:'addUser'},
     login:{pageName:'login', htmlToRender:<Login/>},
     serverOffline:{pageName:'serverOffline', htmlToRender:<ServerOffline/>},
     serverOnline:{pageName:'serverOnline', htmlToRender:<ServerOnline/>},
-    serverProvisioning:{pageName:'serverProvisioning', htmlToRender:<ServerProvisioning/> ,completedSteps:0 },
-    serverDeprovisioning:{pageName:'serverDeprovisioning', htmlToRender:<ServerDeprovisioning/>, completedSteps:0}
+    serverProvisioning:{pageName:'serverProvisioning', htmlToRender:<ServerProvisioning completedSteps={0}/> ,completedSteps:0 },
+    serverDeprovisioning:{pageName:'serverDeprovisioning', htmlToRender:<ServerDeprovisioning completedSteps={0}/>, completedSteps:0}
   }
-
-  function prepareCurrentPage(pageState){
-    localStorage.setItem('currentPage', pageState.pageName);
-    setCurrentPage(pageState.htmlToRender)
-  }
-
-  useEffect(() => {
-    const storedUserLoggedInInformation = localStorage.getItem('currentPage');
-    if (pageStateDictionary.hasOwnProperty(storedUserLoggedInInformation)){
-      prepareCurrentPage(pageStateDictionary[storedUserLoggedInInformation]);
-    } else {
-      prepareCurrentPage(pageStateDictionary.serverOffline);
-    }
-  }, []);
-
-  setInterval(() => {
-      alert("cower");
-    }, 10000);
+  });
 
   const launchServer = (configurations) => {
     let numberMinutesToRunServer = configurations.numberMinutesToRunServer;
     let useSpotInstance = configurations.useSpotInstance;
     let serverSize = configurations.serverSize;
     let potToUse = configurations.potToUse;
-    prepareCurrentPage(pageStateDictionary.serverProvisioning);
+    alert("sdf");
+    updateCurrentPageState({pageName:"serverProvisioning", completedSteps:0});
   };
+
+  function changeCompletedProvisioningSteps(stepToChangeTo){
+      updateCurrentPageState({pageName:"serverProvisioning", completedSteps:stepToChangeTo});
+  }
+
+  useEffect(() => {
+    const storedUserLoggedInInformation = localStorage.getItem('currentPage');
+    updateCurrentPageState({pageName:"serverOffline"});
+    // updateCurrentPageState({pageName:"serverProvisioning", completedSteps:0});
+  }, []);
 
   const terminateServer = (serverToTerminate) => {
     alert('serverToTerminate');
@@ -67,7 +77,7 @@ export const CurrentPageContextProvider = (props) => {
   return (
     <CurrentPageContext.Provider
       value={{
-        currentPage: currentPage,
+        currentPageState:currentPageState,
         onLaunchServer: launchServer,
         onTerminateServer: terminateServer,
         onAddMoney: addMoney,
