@@ -1,75 +1,233 @@
+
 import React from 'react';
-import { Alert, Button, SelectChangeEvent, Theme, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import { FormControl, Select, MenuItem, Checkbox } from '@mui/material';
+import { Alert, Button, SelectChangeEvent, Typography, Theme, CircularProgress } from '@mui/material';
+import { makeStyles, createStyles } from '@mui/styles';
+import { FormControl, Select, MenuItem, Checkbox, Card, CardContent, Grid } from '@mui/material';
+import { DeploymentStatus, DeploymentStatusResponse, MinecraftServerApi, StartServerRequestPayload } from '../api';
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { Box } from '@mui/system';
+import { green } from '@mui/material/colors';
 
-const useStyles = makeStyles({
-    formControl: {
-        minWidth: 120,
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: "flex-start",
-    }
-});
 
-const ServerOffline = () => {
 
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        formControl: {
+            minWidth: 200,
+            height: '100%',
+            textAlign: 'left',
+            // put vertical space between the contents
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+
+        },
+        card: {
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            margin: '0 auto',
+            width: 'calc(100% - 20%)',
+            padding: "30px",
+            // center the contents horizontally
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+        },
+        grid: {
+            height: '100%',
+        },
+        cell: {},
+        select: {
+            width: '250px'
+        }
+    })
+);
+
+
+/**
+ * The component exposed by this file.
+ *
+ * Responsible for rendering any components that are relevant to the server being offline.
+ * This includes exposing a form that allows a user to launch a server.
+ *
+ * @param props
+ * @returns
+ */
+const ServerOffline = (props: {
+    minecraftClient: MinecraftServerApi,
+    setServerStatus: (status: DeploymentStatus) => void,
+}) => {
     const classes = useStyles();
 
-    const [hours, setHours] = React.useState(1);
-    const [allowRisk, setAllowRisk] = React.useState(false);
-    const [serverSize, setServerSize] = React.useState('small');
+    const [hours, setHours] = React.useState('');
+    const [allowRisk, setAllowRisk] = React.useState('');
+    const [serverSize, setServerSize] = React.useState('');
 
-    const handleHoursChange = (event: SelectChangeEvent<number>) => {
-        setHours(Number(event.target.value as string));
-    };
-
-    const handleAllowRiskChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setAllowRisk(event.target.checked);
-    };
-
-    const handleServerSizeChange = (event: SelectChangeEvent<string>) => {
-        setServerSize(event.target.value as string);
-    };
+    const isDisabled = hours === '' || serverSize === '' || allowRisk === '';
 
     return (
-        <form className={classes.form}>
+        <Card className={classes.card}>
 
-            <Typography>How many hours would you like to run the server for?</Typography>
-            <FormControl>
-                <Select defaultValue={1} value={hours} onChange={handleHoursChange} >
+            <CardContent>
+                <Grid container direction="row" spacing={2} className={classes.grid}>
+                    <ServerUptimeInput hours={hours} setHours={setHours} cellClass={classes.cell} formControlClass={classes.formControl} />
+                    <ServerSizeInput serverSize={serverSize} setServerSize={setServerSize} cellClass={classes.cell} formControlClass={classes.formControl} />
+                    <RiskInput allowRisk={allowRisk} setAllowRisk={setAllowRisk} cellClass={classes.cell} formControlClass={classes.formControl} />
+                </Grid>
+
+            </CardContent>
+
+            <LaunchServerButton
+                minecraftClient={props.minecraftClient}
+                setServerStatus={props.setServerStatus}
+                disabled={isDisabled}
+                hours={Number(hours)}
+                serverSize={serverSize}
+                allowRisk={allowRisk.toLowerCase() === "yes"}
+            />
+
+        </Card>
+    );
+};
+
+const ServerUptimeInput = (props: {
+    hours: string,
+    setHours: (hours: string) => void,
+    cellClass: string,
+    formControlClass: string,
+}) => {
+    const { hours, setHours, cellClass, formControlClass } = props;
+    return (
+        <Grid item xs={6} className={cellClass}>
+            <FormControl className={formControlClass}>
+                <Typography>How many hours would you like to run the server for?</Typography>
+                <Select value={hours} onChange={(event) => setHours(event.target.value as string)}>
+                    <MenuItem value={""}>Select</MenuItem>
                     <MenuItem value={1}>1 Hour</MenuItem>
                     <MenuItem value={2}>2 Hours</MenuItem>
                     <MenuItem value={3}>3 Hours</MenuItem>
                 </Select>
             </FormControl>
+        </Grid>
+    );
+};
 
-            <Typography>Are you willing to risk the server stopping suddenly? (up to 3 times cheaper)</Typography>
-            <FormControl>
-                <Checkbox
-                    checked={allowRisk}
-                    onChange={handleAllowRiskChange}
-                />
-            </FormControl>
-
-            <Typography>What size server would you like?</Typography>
-            <FormControl>
-                <Select value={serverSize} onChange={handleServerSizeChange}>
-                    <MenuItem value="small">Small $0.10/hour</MenuItem>
-                    <MenuItem value="medium">Medium $0.20/hour</MenuItem>
-                    <MenuItem value="large">Large $0.30/hour</MenuItem>
+const ServerSizeInput = (props: {
+    serverSize: string,
+    setServerSize: (serverSize: string) => void,
+    cellClass: string,
+    formControlClass: string,
+}) => {
+    const { serverSize, setServerSize, cellClass, formControlClass } = props;
+    return (
+        <Grid item xs={6} className={cellClass}>
+            <FormControl className={formControlClass}>
+                <Typography>What size server would you like?</Typography>
+                <Select value={serverSize} onChange={(event) => setServerSize(event.target.value as string)}>
+                    <MenuItem value={""}>Select</MenuItem>
+                    <MenuItem value={"small"}>Small $0.10/hour</MenuItem>
+                    <MenuItem value={"medium"}>Medium $0.20/hour</MenuItem>
+                    <MenuItem value={"large"}>Large $0.30/hour</MenuItem>
                 </Select>
             </FormControl>
+        </Grid>
+    );
+};
 
-            <Alert severity="info">
-                Your total cost will be (<strong>{hours}</strong> hours) * <strong>$0.20/hour</strong> for a <strong>Medium</strong> size = <strong>$0.40</strong>
-            </Alert >
+const RiskInput = (props: {
+    allowRisk: string,
+    setAllowRisk: (allowRisk: string) => void,
+    cellClass: string,
+    formControlClass: string,
+}) => {
+    const { allowRisk, setAllowRisk, cellClass, formControlClass } = props;
+    return (
+        <Grid item xs={6} className={cellClass}>
+            <FormControl className={formControlClass}>
+                <Typography>Are you willing to risk the server stopping suddenly? (up to 3x cheaper)</Typography>
+                <Select value={allowRisk} onChange={(event) => setAllowRisk(event.target.value as string)}>
+                    <MenuItem value={""}>Select</MenuItem>
+                    <MenuItem value={"yes"}>Yes</MenuItem>
+                    <MenuItem value={"no"}>No</MenuItem>
+                </Select>
+            </FormControl>
+        </Grid>
+    );
+};
+
+const startMinecraftServer = async (args: {
+    minecraftClient: MinecraftServerApi,
+    hours: number,
+    serverSize: string,
+    allowRisk: boolean,
+}) => {
+    const { minecraftClient, hours, serverSize, allowRisk } = args;
+
+    const minutesOfServerUptime = hours * 60;
+    const payload: StartServerRequestPayload = {
+        play_time_minutes: minutesOfServerUptime
+    }
+
+    const response: AxiosResponse<DeploymentStatusResponse> = await minecraftClient.startMinecraftServerMinecraftServerPost(payload)
+    return response.data.status;
+}
+
+const LaunchServerButton = (props: {
+    minecraftClient: MinecraftServerApi,
+    setServerStatus: (status: DeploymentStatus) => void,
+    disabled: boolean,
+    hours: number,
+    serverSize: string,
+    allowRisk: boolean,
+}) => {
+    // TODO: minecraftClient.getDeploymentStatus() is a function that returns a promise with the result of an API call {"server_status": DeploymentStatus.Online}
+    // we should call it here and set the server status to the result. The Launch button should show a circular progress indicator while the API call is in progress.
+    const { minecraftClient, setServerStatus, disabled, hours, serverSize, allowRisk } = props;
+    // return <Button variant="contained" color={"success"} disabled={disabled} style={{ margin: '0 auto', display: 'block' }}> Launch server</Button>
 
 
-            <Button variant="contained" color={"success"}>Launch server</Button>
-        </form >
+    const [loading, setLoading] = React.useState(false);
+
+    const handleClick = () => {
+        if (!loading) {
+            setLoading(true);
+
+            startMinecraftServer({ minecraftClient, hours, serverSize, allowRisk })
+                .then((serverStatus: DeploymentStatus) => {
+                    setServerStatus(serverStatus);
+                    setLoading(false);
+                })
+        }
+    }
+
+    const buttonSx = {
+        ...(loading && {
+            bgcolor: green[500],
+            '&:hover': {
+                bgcolor: green[700],
+            },
+        }),
+    };
+
+    return (
+        <Box sx={{ position: 'relative' }}>
+            <Button
+                variant="contained"
+                color="success"
+                sx={buttonSx}
+                disabled={disabled || loading}
+                onClick={handleClick}
+            >
+                {loading ? <CircularProgress size={24} sx={{
+                    color: green[500],
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    marginTop: '-12px',
+                    marginLeft: '-12px',
+                }} /> : "Launch Server"}
+            </Button>
+        </Box>
     );
 };
 

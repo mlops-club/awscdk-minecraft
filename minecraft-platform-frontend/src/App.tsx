@@ -10,13 +10,15 @@ import { config } from 'process';
 
 /* wrap app in material UI theme */
 
+const theme = createTheme()
+
 function App() {
   return (
-    // <ThemeProvider theme={theme}>
-    <div className="App" >
-      <Home />
-    </div >
-    // </ThemeProvider>
+    <ThemeProvider theme={theme}>
+      <div className="App" >
+        <Home />
+      </div >
+    </ThemeProvider>
   );
 }
 
