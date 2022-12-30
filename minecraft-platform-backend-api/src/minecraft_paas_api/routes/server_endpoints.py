@@ -3,7 +3,8 @@
 from fastapi import APIRouter, HTTPException, Request
 from minecraft_paas_api.schemas.server_destroy_post import DestroyServer
 from minecraft_paas_api.schemas.server_ip import ServerIpSchema
-from minecraft_paas_api.schemas.server_status import DeploymentStatusResponse
+from minecraft_paas_api.schemas.server_start_post import StartServerRequestPayload
+from minecraft_paas_api.schemas.server_status import DeploymentStatus, DeploymentStatusResponse
 from minecraft_paas_api.services.minecraft_server_provisioner import MinecraftServerProvisioner
 from minecraft_paas_api.settings import Settings
 from starlette.status import HTTP_404_NOT_FOUND
@@ -19,14 +20,16 @@ def get_server_provisioner(request: Request) -> MinecraftServerProvisioner:
     return server_provisioner
 
 
-@ROUTER.post("/minecraft-server")
-async def start_minecraft_server(request: Request):
+@ROUTER.post("/minecraft-server", response_model=DeploymentStatusResponse)
+async def start_minecraft_server(request: Request, payload: StartServerRequestPayload):
     """Start the server if it is not already running."""
     server_provisioner = get_server_provisioner(request)
-    return server_provisioner.start_server()
+    server_provisioner.start_server()
+    server_provisioner.stop_server_in_n_minutes(minutes_to_wait_until_stop_server=payload.play_time_minutes)
+    return DeploymentStatusResponse(status=DeploymentStatus.SERVER_PROVISIONING)
 
 
-@ROUTER.delete("/minecraft-server")
+@ROUTER.delete("/minecraft-server", response_model=DeploymentStatusResponse)
 async def stop_minecraft_server(request: Request, payload: DestroyServer):
     """
     Stop the server if it is running.
@@ -36,8 +39,10 @@ async def stop_minecraft_server(request: Request, payload: DestroyServer):
     """
     server_provisioner = get_server_provisioner(request)
     if payload.wait_n_minutes_before_destroy:
-        return server_provisioner.stop_server_in_n_minutes(payload.wait_n_minutes_before_destroy)
-    return server_provisioner.stop_server()
+        server_provisioner.stop_server_in_n_minutes(payload.wait_n_minutes_before_destroy)
+    else:
+        server_provisioner.stop_server()
+    return DeploymentStatusResponse(status=DeploymentStatus.SERVER_DEPROVISIONING)
 
 
 @ROUTER.get("/minecraft-server/ip-address", response_model=ServerIpSchema)

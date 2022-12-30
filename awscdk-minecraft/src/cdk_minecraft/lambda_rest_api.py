@@ -113,7 +113,7 @@ def make_cors_preflight_mock_integration(frontend_cors_url: str) -> apigw.MockIn
                 response_templates={
                     # API Gateway only supports specifying a single CORS origin for the Access-Control-Allow-Origin header;
                     # but it's useful for development to include http://localhost:3000 so that we can hit the production
-                    # API from our local frontend. We can't do a comma-separated list of origins like "http://<prod url>,http://localhost:3000`",
+                    # API from our local frontend. We can't do a comma-separated list of origins like "https://<prod url>,http://localhost:3000`",
                     # API gateway only supports one specific origin or '*'--but '*' is not allowed when credentials are passed
                     # with HTTP requests such as we are doing with AWS cognito.
                     #

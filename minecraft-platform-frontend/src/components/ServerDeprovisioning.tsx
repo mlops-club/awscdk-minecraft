@@ -1,28 +1,29 @@
 // react component
 import React from 'react';
+import { MinecraftServerApi } from '../api';
 
-// read the cognito idToken from the browser
-import { getUserIdToken } from '../aws-cognito/auth-utils';
+import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
 
+const LinearIndeterminate = () => {
+    return (
+        <Box sx={{ width: '100%' }}>
+            <LinearProgress />
+        </Box>
+    );
+}
 
-
-const ServerDeprovisioning = () => {
-
-    // use and effect hook to read the token
-    React.useEffect(() => {
-        getUserIdToken()
-            .then((idToken) => {
-                console.log("The idToken is: ", idToken)
-            })
-            .catch((error) => {
-                console.log("Error reading token: ", error)
-            })
-    }, []);
+const ServerDeprovisioning = (props: {
+    minecraftClient: MinecraftServerApi;
+}) => {
 
     return (
+        // linear progress bar from material UI that never ends
         <div>
-            <h1>Server is shutting down</h1>
+            <p>Server is shutting down...</p>
+            <LinearIndeterminate />
         </div>
+
     );
 };
 
