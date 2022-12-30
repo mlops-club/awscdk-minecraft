@@ -99,6 +99,19 @@ export interface ServerIpSchema {
     'server_ip_address': string;
 }
 /**
+ * Response model for the `/destroy-server-after-seconds` endpoint.
+ * @export
+ * @interface StartServerRequestPayload
+ */
+export interface StartServerRequestPayload {
+    /**
+     *
+     * @type {number}
+     * @memberof StartServerRequestPayload
+     */
+    'play_time_minutes': number;
+}
+/**
  *
  * @export
  * @interface ValidationError
@@ -291,10 +304,13 @@ export const MinecraftServerApiAxiosParamCreator = function (configuration?: Con
         /**
          * Start the server if it is not already running.
          * @summary Start Minecraft Server
+         * @param {StartServerRequestPayload} startServerRequestPayload
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        startMinecraftServerMinecraftServerPost: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        startMinecraftServerMinecraftServerPost: async (startServerRequestPayload: StartServerRequestPayload, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'startServerRequestPayload' is not null or undefined
+            assertParamExists('startMinecraftServerMinecraftServerPost', 'startServerRequestPayload', startServerRequestPayload)
             const localVarPath = `/minecraft-server`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -309,9 +325,12 @@ export const MinecraftServerApiAxiosParamCreator = function (configuration?: Con
 
 
 
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(startServerRequestPayload, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -387,11 +406,12 @@ export const MinecraftServerApiFp = function(configuration?: Configuration) {
         /**
          * Start the server if it is not already running.
          * @summary Start Minecraft Server
+         * @param {StartServerRequestPayload} startServerRequestPayload
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async startMinecraftServerMinecraftServerPost(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.startMinecraftServerMinecraftServerPost(options);
+        async startMinecraftServerMinecraftServerPost(startServerRequestPayload: StartServerRequestPayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeploymentStatusResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startMinecraftServerMinecraftServerPost(startServerRequestPayload, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -401,7 +421,7 @@ export const MinecraftServerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async stopMinecraftServerMinecraftServerDelete(destroyServer: DestroyServer, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+        async stopMinecraftServerMinecraftServerDelete(destroyServer: DestroyServer, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeploymentStatusResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.stopMinecraftServerMinecraftServerDelete(destroyServer, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -436,11 +456,12 @@ export const MinecraftServerApiFactory = function (configuration?: Configuration
         /**
          * Start the server if it is not already running.
          * @summary Start Minecraft Server
+         * @param {StartServerRequestPayload} startServerRequestPayload
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        startMinecraftServerMinecraftServerPost(options?: any): AxiosPromise<any> {
-            return localVarFp.startMinecraftServerMinecraftServerPost(options).then((request) => request(axios, basePath));
+        startMinecraftServerMinecraftServerPost(startServerRequestPayload: StartServerRequestPayload, options?: any): AxiosPromise<DeploymentStatusResponse> {
+            return localVarFp.startMinecraftServerMinecraftServerPost(startServerRequestPayload, options).then((request) => request(axios, basePath));
         },
         /**
          * Stop the server if it is running.  If the `wait_n_minutes_before_destroy` parameter is set, the server will be stopped after the specified amount of time. Otherwise the server will be stopped immediately.
@@ -449,7 +470,7 @@ export const MinecraftServerApiFactory = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        stopMinecraftServerMinecraftServerDelete(destroyServer: DestroyServer, options?: any): AxiosPromise<any> {
+        stopMinecraftServerMinecraftServerDelete(destroyServer: DestroyServer, options?: any): AxiosPromise<DeploymentStatusResponse> {
             return localVarFp.stopMinecraftServerMinecraftServerDelete(destroyServer, options).then((request) => request(axios, basePath));
         },
     };
@@ -487,12 +508,13 @@ export class MinecraftServerApi extends BaseAPI {
     /**
      * Start the server if it is not already running.
      * @summary Start Minecraft Server
+     * @param {StartServerRequestPayload} startServerRequestPayload
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MinecraftServerApi
      */
-    public startMinecraftServerMinecraftServerPost(options?: AxiosRequestConfig) {
-        return MinecraftServerApiFp(this.configuration).startMinecraftServerMinecraftServerPost(options).then((request) => request(this.axios, this.basePath));
+    public startMinecraftServerMinecraftServerPost(startServerRequestPayload: StartServerRequestPayload, options?: AxiosRequestConfig) {
+        return MinecraftServerApiFp(this.configuration).startMinecraftServerMinecraftServerPost(startServerRequestPayload, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

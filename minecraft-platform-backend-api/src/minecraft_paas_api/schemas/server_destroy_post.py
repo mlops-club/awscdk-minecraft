@@ -1,4 +1,4 @@
-"""Moduel defines pydantic module for the destroy server post requests."""
+"""Pydantic model for the destroy server post requests."""
 
 from datetime import timedelta
 from typing import Optional

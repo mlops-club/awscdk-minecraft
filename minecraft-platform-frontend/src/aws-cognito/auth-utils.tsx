@@ -9,7 +9,10 @@
  */
 import { CognitoUser, CognitoIdToken } from "amazon-cognito-identity-js";
 import { Amplify, Auth } from "aws-amplify";
+import axios, { AxiosInstance } from "axios";
 import { MinecraftFrontendConfig } from "../config";
+
+
 
 
 export const configureAmplifyCognitoAuthSingleton = (config: MinecraftFrontendConfig) => {
@@ -34,6 +37,41 @@ export const configureAmplifyCognitoAuthSingleton = (config: MinecraftFrontendCo
 
   // @ts-ignore
   Amplify.configure(amplifyConfig);
+}
+
+
+/**
+ * Infinitely attempt to read the cognito token from local storage.
+ *
+ * This is a workaround for a behavior we observed where the token is not
+ * available immediately after the user logs in or after the page loads.
+ * A brief investigation revealed that the token does become available
+ * after a few seconds, so for now we are resorting to attempting to
+ * read the token over and over again until it is available.
+ *
+ * @returns
+ */
+export const readTokenFromLocalStorage = async (): Promise<string> => {
+  try {
+    const idToken: CognitoIdToken = await getUserIdToken()
+    const token: string = idToken.getJwtToken()
+    return token
+  } catch (error) {
+    console.log("Error reading token: ", error)
+    console.log("Trying again in 1 second.")
+
+    // set timeout that resolves with the result of a recursive call to readToken
+    return await new Promise(
+      (resolve, reject) => {
+        setTimeout(() => {
+          readTokenFromLocalStorage().then((token) => {
+            resolve(token)
+          })
+        }, 1_000)
+      }
+    )
+
+  }
 }
 
 // // Cognito stack variables. Get these from the Cognito stack outputs!
