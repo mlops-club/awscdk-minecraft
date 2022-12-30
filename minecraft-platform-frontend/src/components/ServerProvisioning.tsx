@@ -4,6 +4,7 @@ import { MinecraftServerApi } from '../api';
 
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
+import { Typography } from '@mui/material';
 
 const LinearIndeterminate = () => {
     return (
@@ -20,7 +21,8 @@ const ServerProvisioning = (props: {
     return (
         // linear progress bar from material UI that never ends
         <div>
-            <p>Server is starting up...</p>
+            <Typography>Starting Minecraft server...</Typography>
+            <Typography>(This may take 5-10 minutes)</Typography>
             <LinearIndeterminate />
         </div>
 

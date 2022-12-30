@@ -6,6 +6,7 @@ import { DeploymentStatus, DeploymentStatusResponse, DestroyServer, MinecraftSer
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Box } from '@mui/system';
 import { green, red } from '@mui/material/colors';
+import { getMinecraftServerIpAddress, stopMinecraftServer } from '../api-wrapper/minecraft-client';
 
 
 
@@ -41,22 +42,7 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-const getMinecraftServerIpAddress = async (args: {
-    minecraftClient: MinecraftServerApi,
-}): Promise<string> => {
-    const { minecraftClient } = args;
-    const response: AxiosResponse<ServerIpSchema> = await minecraftClient.getMinecraftServerIpAddressMinecraftServerIpAddressGet();
-    return response.data.server_ip_address;
-}
 
-const stopMinecraftServer = async (args: {
-    minecraftClient: MinecraftServerApi,
-}): Promise<DeploymentStatus> => {
-    const { minecraftClient } = args;
-    const payload: DestroyServer = {}
-    const response: AxiosResponse<DeploymentStatusResponse> = await minecraftClient.stopMinecraftServerMinecraftServerDelete(payload);
-    return response.data.status;
-}
 
 /**
  * The component exposed by this file.
