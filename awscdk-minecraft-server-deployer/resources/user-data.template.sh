@@ -62,3 +62,5 @@ EOF
 # create a docker stack
 # docker network create minecraft-server
 docker stack deploy -c docker-compose.yml minecraft
+
+docker pull "$BACKUP_SERVICE_DOCKER_IMAGE_URI"

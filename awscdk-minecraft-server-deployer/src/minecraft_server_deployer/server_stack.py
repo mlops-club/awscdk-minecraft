@@ -9,27 +9,25 @@ from aws_cdk import aws_cloudwatch as cloudwatch
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
 from constructs import Construct
+from aws_cdk import aws_ecr as ecr
 
 THIS_DIR = Path(__file__).parent
 USER_DATA_SH_TEMPLATE_FPATH = (THIS_DIR / "../../resources/user-data.template.sh").resolve()
 
 
-def render_user_data_script(minecraft_semantic_version: str) -> str:
+def render_user_data_script(
+    minecraft_semantic_version: str,
+    backup_service_docker_image_uri: str,
+) -> str:
     """Render the user data script for the EC2 instance.
 
-    Parameters
-    ----------
-    minecraft_semantic_version : str
-        The semantic version of the minecraft server to deploy.
-
-    Returns
-    -------
-    str
-        The rendered user data script.
+    :param minecraft_semantic_version: The semantic version of the Minecraft server to install.
+    :param backup_service_docker_image_uri: The URI of the Docker image in ECR for the backup service.
     """
     return Template(USER_DATA_SH_TEMPLATE_FPATH.read_text()).substitute(
         {
             "MINECRAFT_SERVER_SEMANTIC_VERSION": minecraft_semantic_version,
+            "BACKUP_SERVICE_DOCKER_IMAGE_URI": backup_service_docker_image_uri,
         }
     )
 
@@ -156,7 +154,15 @@ class ServerStack(Stack):
         The bucket where the server files will be stored.
     """
 
-    def __init__(self, scope: Construct, construct_id: str, minecraft_server_version: str, **kwargs) -> None:
+    def __init__(
+        self,
+        scope: Construct,
+        construct_id: str,
+        minecraft_server_version: str,
+        backup_service_ecr_repo_arn: str,
+        backup_service_docker_image_uri: str,
+        **kwargs,
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         _vpc = ec2.Vpc.from_lookup(scope=self, id="DefaultVpc", is_default=True)
@@ -197,7 +203,10 @@ class ServerStack(Stack):
 
         # fill in user data script
         _user_data_script = ec2.UserData.custom(
-            render_user_data_script(minecraft_semantic_version=minecraft_server_version)
+            render_user_data_script(
+                minecraft_semantic_version=minecraft_server_version,
+                backup_service_docker_image_uri=backup_service_docker_image_uri,
+            )
         )
 
         _ec2 = ec2.Instance(
@@ -211,6 +220,9 @@ class ServerStack(Stack):
             role=_iam_role,
             security_group=_sg,
         )
+        grant_ecr_pull_access(
+            ecr_repo_arn=backup_service_ecr_repo_arn, role=_ec2.role, repo_construct_id="BackupServiceEcrRepo"
+        )
 
         # add stack output for ip address of the ec2 instance
         cdk.CfnOutput(
@@ -221,3 +233,9 @@ class ServerStack(Stack):
         )
 
         add_alarms_to_stack(scope=self, ec2_instance_id=_ec2.instance_id)
+
+
+def grant_ecr_pull_access(ecr_repo_arn: str, role: iam.Role, repo_construct_id: str):
+    """Grant the given role access to pull docker images from the given ECR repo."""
+    ecr_repo = ecr.Repository.from_repository_arn(scope=role, id=repo_construct_id, repository_arn=ecr_repo_arn)
+    ecr_repo.grant_pull(role)
