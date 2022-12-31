@@ -1,0 +1,7 @@
+*
+!src/
+!setup.py
+!setup.cfg
+!pyproject.toml
+!README.md
+!backup-or-restore-s3.sh

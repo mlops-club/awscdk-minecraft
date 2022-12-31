@@ -45,7 +45,20 @@ export const fetchConfig = async (): Promise<MinecraftFrontendConfig> => {
     const url = isLocalhost() ? '/static/config.dev.json' : "/static/config.json";
     console.log("is localhost", isLocalhost(), url)
     const response: { data: MinecraftFrontendConfig } = await axios.get(url);
-    return response.data;
+
+    // view the config so it exists without transformations
+    const config = {
+        ...response.data,
+        backend_api_url: stripTrailingSlash(response.data.backend_api_url)
+    };
+    return config;
+}
+
+const stripTrailingSlash = (url: string): string => {
+    if (url.endsWith("/")) {
+        return url.slice(0, -1);
+    }
+    return url;
 }
 
 /**

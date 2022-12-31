@@ -1,0 +1,60 @@
+# this compose file is JUST for local testing. Can make sure that we can restore and save state for minecraft.
+version: '3.7'
+services:
+    # minecraft:
+    #     # image docs: https://github.com/itzg/docker-minecraft-server
+    #     image: itzg/minecraft-server
+    #     container_name: mc-server
+    #     restart: always
+    #     ports:
+    #         - "25565:25565"
+    #     environment:
+    #         EULA: "TRUE"
+    #         TYPE: "PAPER"
+    #         VERSION: 1.19.3 # "$MINECRAFT_SERVER_SEMANTIC_VERSION"
+    #     networks:
+    #     - minecraft-server
+    #     deploy:
+    #         replicas: 1
+
+    mc-backup-python:
+        # aws s3 backup image with awscli and python3
+        build:
+            context: ./ # minecraft-platform-backup-service
+            dockerfile: Dockerfile
+        image: minecraft-backup # this will point to ECR for prod
+        container_name: mc-backup
+        restart: always
+        volumes:
+            - ../minecraft-platform-backup-service/src/s3_backup_service/zip_directory.py:/data/zip_directory.py
+            - ../minecraft-platform-backup-service/tests:/data/tests
+        command: "python3 zip_directory.py --restore"
+        environment:
+            # AWS_ACCESS_KEY_ID: "$AWS_ACCESS_KEY_ID"
+            # AWS_SECRET_ACCESS_KEY: "$AWS_SECRET_ACCESS_KEY"
+            # AWS_REGION: "$AWS_REGION"
+            # BUCKET_NAME: "$BUCKET_NAME"
+            AWS_PROFILE: "mlops-club" # "$AWS_PROFILE"
+        working_dir: /data
+
+    mc-backup-bash:
+        # aws s3 backup image with awscli and python3
+        build:
+            context: ./ # minecraft-platform-backup-service
+            dockerfile: Dockerfile
+        image: backup # this will point to ECR for prod
+        volumes:
+            - ~/.aws:/root/.aws
+            - .:/app
+        command: restore
+        environment:
+            AWS_PROFILE: mlops-club
+            BACKUPS_BUCKET: awscdk-minecraft-bucket43879c71-5acoum234t7e
+            SERVER_DATA_DIR: /app/src
+            BACKUPS_S3_PREFIX: test-backups-dir
+            BACKUP_INTERVAL_SECONDS: 5
+
+networks:
+    minecraft-server:
+        driver: overlay
+        name: minecraft-server

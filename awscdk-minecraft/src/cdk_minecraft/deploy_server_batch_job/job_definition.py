@@ -6,11 +6,14 @@ from aws_cdk import aws_ecr_assets as ecr_assets
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_iam as iam
 from cdk_minecraft.constants import AWSCDK_MINECRAFT_SERVER_DEPLOYER__DIR
+from cdk_minecraft.deploy_server_batch_job.server_backup_docker_image import MinecraftServerBackupServiceImage
 from constructs import Construct
 
 
 def make_minecraft_ec2_deployment__batch_job_definition(
-    scope: Construct, id_prefix: str
+    scope: Construct,
+    id_prefix: str,
+    backups_bucket_name: str,
 ) -> batch_alpha.JobDefinition:
     """Create a batch job definition to deploy a Minecraft server on EC2.
 
@@ -31,6 +34,10 @@ def make_minecraft_ec2_deployment__batch_job_definition(
     job_role: iam.Role = make_cdk_deployment_role(scope=scope, id_prefix=id_prefix)
 
     stack = Stack.of(scope)
+
+    backup_service_image = MinecraftServerBackupServiceImage(
+        scope=scope, id=f"{id_prefix}MinecraftServerBackupServiceImage", ensure_unique_ids=True
+    )
 
     return batch_alpha.JobDefinition(
         scope=scope,
@@ -57,6 +64,9 @@ def make_minecraft_ec2_deployment__batch_job_definition(
             environment={
                 "AWS_ACCOUNT_ID": stack.account,
                 "AWS_REGION": stack.region,
+                "BACKUP_SERVICE_ECR_REPO_ARN": backup_service_image.ecr_repo_arn,
+                "BACKUP_SERVICE_DOCKER_IMAGE_URI": backup_service_image.image_uri,
+                "MINECRAFT_SERVER_BACKUPS_BUCKET_NAME": backups_bucket_name,
             },
             vcpus=1,
             memory_limit_mib=2 * 1024,
