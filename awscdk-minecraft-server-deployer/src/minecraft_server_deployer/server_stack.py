@@ -132,6 +132,7 @@ def render_user_data_script(
     aws_account_id: str,
     aws_region: str,
     restore_from_most_recent_backup: bool = True,
+    backup_interval_seconds: int = 60 * 10,
 ) -> str:
     """Render the user data script for the EC2 instance.
 
@@ -146,6 +147,7 @@ def render_user_data_script(
             "MINECRAFT_SERVER_BACKUPS_BUCKET_NAME": minecraft_server_backups_bucket_name,
             "AWS_ACCOUNT_ID": aws_account_id,
             "AWS_REGION": aws_region,
+            "BACKUP_INTERVAL_SECONDS": str(backup_interval_seconds),
         }
     )
 
