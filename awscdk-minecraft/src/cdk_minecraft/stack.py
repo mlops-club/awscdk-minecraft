@@ -3,6 +3,7 @@
 
 from typing import List
 
+import aws_cdk as cdk
 # coginto imports, user pool and client
 # coginto imports, user pool and client
 # imports for lambda functions and API Gateway
@@ -11,7 +12,9 @@ from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
+from aws_cdk import aws_s3 as s3
 from aws_prototyping_sdk.static_website import StaticWebsite
+from cdk_minecraft.backend_api import MinecraftPaaSRestApi
 from cdk_minecraft.deploy_server_batch_job.deprovision_state_machine import (
     DeprovisionMinecraftServerStateMachine,
 )
@@ -24,7 +27,6 @@ from cdk_minecraft.frontend import (
     create_config_json_file_in_static_site_s3_bucket,
     make_minecraft_platform_frontend_static_website,
 )
-from cdk_minecraft.backend_api import MinecraftPaaSRestApi
 from constructs import Construct
 
 
@@ -48,6 +50,14 @@ class MinecraftPaasStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        """Backups"""
+        backups_bucket = s3.Bucket(
+            scope=self,
+            id="MinecraftServerBackupsBucket",
+            # TODO: make this RETAIN later
+            removal_policy=cdk.RemovalPolicy.DESTROY,
+        )
+
         """State machines"""
         job_queue: batch_alpha.JobQueue = BatchJobQueue(
             scope=self,
@@ -58,6 +68,7 @@ class MinecraftPaasStack(Stack):
             make_minecraft_ec2_deployment__batch_job_definition(
                 scope=self,
                 id_prefix="McDeployJobDefinition-",
+                backups_bucket_name=backups_bucket.bucket_name,
             )
         )
 

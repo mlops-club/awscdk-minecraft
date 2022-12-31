@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# TODO: consider using try/catch expressions as shown in this SO answer: https://stackoverflow.com/questions/22009364/is-there-a-try-catch-command-in-bash
+# to return a failure cfn-signal or success.
+
 # This script is a templated string. All occurreces of "[dollar sign]<some var name>" will be substituted
 # with other values by the CDK code.
 
@@ -29,7 +32,11 @@ docker swarm init
 yum install -y python3
 pip3 install awscli --upgrade --user
 
-# prepare a docker-compose.yml that runs the
+# login to ECR and pull the minecraft server backup/restore image
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+docker pull "$BACKUP_SERVICE_DOCKER_IMAGE_URI"
+
+# prepare a docker-compose.yml that runs the minecraft server and the backup service
 cat << EOF > "$$WORKDIR/docker-compose.yml"
 version: '3.7'
 services:
@@ -43,8 +50,25 @@ services:
             EULA: "TRUE"
             TYPE: "PAPER"
             VERSION: "$MINECRAFT_SERVER_SEMANTIC_VERSION"
+        volumes:
+            - ./minecraft-data:/data
         networks:
         - minecraft-server
+        deploy:
+            replicas: 1
+
+    # by default, this container will inherit the same IAM role as the EC2 host
+    minecraft-backup:
+        # aws s3 backup image with awscli and python3
+        image: "$BACKUP_SERVICE_DOCKER_IMAGE_URI"
+        volumes:
+            - ./minecraft-data:/minecraft-data
+        command: backup-on-interval
+        environment:
+            BACKUPS_BUCKET: "$MINECRAFT_SERVER_BACKUPS_BUCKET_NAME"
+            SERVER_DATA_DIR: /minecraft-data
+            BACKUPS_S3_PREFIX: minecraft-server-backups
+            BACKUP_INTERVAL_SECONDS: "$BACKUP_INTERVAL_SECONDS"
         deploy:
             replicas: 1
 
@@ -54,6 +78,11 @@ networks:
         name: minecraft-server
 EOF
 
+# restore from backup if $RESTORE_FROM_MOST_RECENT_BACKUP is set to "true"
+if [ "$RESTORE_FROM_MOST_RECENT_BACKUP" = "true" ]; then
+    docker-compose run minecraft-backup restore || echo "Failed to restore from backup. Starting fresh..."
+fi
+
 
 ##########################################
 # --- Start up the with docker swarm --- #
@@ -62,5 +91,3 @@ EOF
 # create a docker stack
 # docker network create minecraft-server
 docker stack deploy -c docker-compose.yml minecraft
-
-docker pull "$BACKUP_SERVICE_DOCKER_IMAGE_URI"

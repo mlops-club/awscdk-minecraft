@@ -17,15 +17,15 @@ services:
     #     deploy:
     #         replicas: 1
 
-    mc-backup:
+    mc-backup-python:
         # aws s3 backup image with awscli and python3
-        build: 
+        build:
             context: ./ # minecraft-platform-backup-service
             dockerfile: Dockerfile
-        image: minecraft-backup  # this will point to ECR for prod
+        image: minecraft-backup # this will point to ECR for prod
         container_name: mc-backup
         restart: always
-        volumes: 
+        volumes:
             - ../minecraft-platform-backup-service/src/s3_backup_service/zip_directory.py:/data/zip_directory.py
             - ../minecraft-platform-backup-service/tests:/data/tests
         command: "python3 zip_directory.py --restore"
@@ -36,6 +36,23 @@ services:
             # BUCKET_NAME: "$BUCKET_NAME"
             AWS_PROFILE: "mlops-club" # "$AWS_PROFILE"
         working_dir: /data
+
+    mc-backup-bash:
+        # aws s3 backup image with awscli and python3
+        build:
+            context: ./ # minecraft-platform-backup-service
+            dockerfile: Dockerfile
+        image: backup # this will point to ECR for prod
+        volumes:
+            - ~/.aws:/root/.aws
+            - .:/app
+        command: restore
+        environment:
+            AWS_PROFILE: mlops-club
+            BACKUPS_BUCKET: awscdk-minecraft-bucket43879c71-5acoum234t7e
+            SERVER_DATA_DIR: /app/src
+            BACKUPS_S3_PREFIX: test-backups-dir
+            BACKUP_INTERVAL_SECONDS: 5
 
 networks:
     minecraft-server:
