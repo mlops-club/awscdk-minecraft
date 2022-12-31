@@ -7,6 +7,7 @@ import { DeploymentStatus, DeploymentStatusResponse, MinecraftServerApi, StartSe
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Box } from '@mui/system';
 import { green } from '@mui/material/colors';
+import { startMinecraftServer } from '../api-wrapper/minecraft-client';
 
 
 
@@ -20,7 +21,6 @@ const useStyles = makeStyles((theme: Theme) =>
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-
         },
         card: {
             marginLeft: 'auto',
@@ -155,22 +155,7 @@ const RiskInput = (props: {
     );
 };
 
-const startMinecraftServer = async (args: {
-    minecraftClient: MinecraftServerApi,
-    hours: number,
-    serverSize: string,
-    allowRisk: boolean,
-}) => {
-    const { minecraftClient, hours, serverSize, allowRisk } = args;
 
-    const minutesOfServerUptime = hours * 60;
-    const payload: StartServerRequestPayload = {
-        play_time_minutes: minutesOfServerUptime
-    }
-
-    const response: AxiosResponse<DeploymentStatusResponse> = await minecraftClient.startMinecraftServerMinecraftServerPost(payload)
-    return response.data.status;
-}
 
 const LaunchServerButton = (props: {
     minecraftClient: MinecraftServerApi,
