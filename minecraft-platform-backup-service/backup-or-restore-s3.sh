@@ -27,10 +27,10 @@ function backup-to-s3() {
     echo "zipping Minecraft server data at $SERVER_DATA_DIR..."
 
     BACKUP_NAME=$(make-new-backup-name)
-    export DIR=$(pwd) \
-    && cd "$SERVER_DATA_DIR" \
-    && zip -r "../$BACKUP_NAME" ./* \
-    && cd "$DIR"
+
+    cd "$SERVER_DATA_DIR"
+    zip -r "../$BACKUP_NAME" ./*
+    cd "$SERVER_DATA_DIR/.."
 
     echo "uploading Minecraft server data to s3://$BACKUPS_BUCKET/$BACKUPS_S3_PREFIX/$BACKUP_NAME..."
     aws s3 cp "$BACKUP_NAME" "s3://$BACKUPS_BUCKET/$BACKUPS_S3_PREFIX/$BACKUP_NAME"

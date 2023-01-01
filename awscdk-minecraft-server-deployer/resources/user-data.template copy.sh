@@ -6,15 +6,12 @@
 # This script is a templated string. All occurreces of "[dollar sign]<some var name>" will be substituted
 # with other values by the CDK code.
 
-# make the logged output of this user-data script available in the EC2 console
-exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-
 # print the commands this script runs as they are executed
 set -x
 
 export WORKDIR=/minecraft
-mkdir -p "$$WORKDIR"
-cd "$$WORKDIR"
+mkdir -p "$WORKDIR"
+cd "$WORKDIR"
 
 #########################################
 # --- Install CLI tool dependencies --- #
@@ -24,7 +21,7 @@ yum update -y
 yum install -y docker
 
 # install docker-compose and make the binary executable
-curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$$(uname -s)-$$(uname -m) -o /usr/bin/docker-compose
+curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose
 chmod +x /usr/bin/docker-compose
 
 # initialize docker and docker-swarm daemons
@@ -36,11 +33,11 @@ yum install -y python3
 pip3 install awscli --upgrade --user
 
 # login to ECR and pull the minecraft server backup/restore image
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
-docker pull "$BACKUP_SERVICE_DOCKER_IMAGE_URI"
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin "630013828440.dkr.ecr.us-west-2.amazonaws.com"
+docker pull "630013828440.dkr.ecr.us-west-2.amazonaws.com/awscdk-minecraft-mcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo192beeb7-jwnlifcq2rzf"
 
 # prepare a docker-compose.yml that runs the minecraft server and the backup service
-cat << EOF > "$$WORKDIR/docker-compose.yml"
+cat << EOF > "$WORKDIR/docker-compose.yml"
 version: '3.7'
 services:
     minecraft:
@@ -52,7 +49,7 @@ services:
         environment:
             EULA: "TRUE"
             TYPE: "PAPER"
-            VERSION: "$MINECRAFT_SERVER_SEMANTIC_VERSION"
+            VERSION: "1.19.3"
         volumes:
             - ./minecraft-data:/data
         networks:
@@ -63,15 +60,15 @@ services:
     # by default, this container will inherit the same IAM role as the EC2 host
     minecraft-backup:
         # aws s3 backup image with awscli and python3
-        image: "$BACKUP_SERVICE_DOCKER_IMAGE_URI"
+        image: "630013828440.dkr.ecr.us-west-2.amazonaws.com/awscdk-minecraft-mcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo192beeb7-jwnlifcq2rzf"
         volumes:
             - ./minecraft-data:/minecraft-data
         command: backup-on-interval
         environment:
-            BACKUPS_BUCKET: "$MINECRAFT_SERVER_BACKUPS_BUCKET_NAME"
+            BACKUPS_BUCKET: "awscdk-minecraft-minecraftserverbackupsbucketce8b-18lbuip34jg7v"
             SERVER_DATA_DIR: /minecraft-data
             BACKUPS_S3_PREFIX: minecraft-server-backups
-            BACKUP_INTERVAL_SECONDS: "$BACKUP_INTERVAL_SECONDS"
+            BACKUP_INTERVAL_SECONDS: "600"
         deploy:
             replicas: 1
 
@@ -79,14 +76,14 @@ networks:
     minecraft-server:
         driver: overlay
         name: minecraft-server
-        attachable: true
 EOF
 
-# restore from backup if $RESTORE_FROM_MOST_RECENT_BACKUP is set to "true"
-if [ "$RESTORE_FROM_MOST_RECENT_BACKUP" = "true" ]; then
+# restore from backup if true is set to "true"
+if [ "true" = "true" ]; then
     docker-compose run minecraft-backup restore || echo "Failed to restore from backup. Starting fresh..."
     docker network rm minecraft-server
 fi
+
 
 ##########################################
 # --- Start up the with docker swarm --- #
