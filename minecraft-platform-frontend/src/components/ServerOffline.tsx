@@ -99,7 +99,7 @@ const ServerUptimeInput = (props: {
 }) => {
     const { hours, setHours, cellClass, formControlClass } = props;
     return (
-        <Grid item xs={6} className={cellClass}>
+        <Grid item xs={12} md={6} className={cellClass}>
             <FormControl className={formControlClass}>
                 <Typography>How many hours would you like to run the server for?</Typography>
                 <Select value={hours} onChange={(event) => setHours(event.target.value as string)}>
@@ -121,7 +121,7 @@ const ServerSizeInput = (props: {
 }) => {
     const { serverSize, setServerSize, cellClass, formControlClass } = props;
     return (
-        <Grid item xs={6} className={cellClass}>
+        <Grid item xs={12} md={6} className={cellClass}>
             <FormControl className={formControlClass}>
                 <Typography>What size server would you like?</Typography>
                 <Select value={serverSize} onChange={(event) => setServerSize(event.target.value as string)}>
@@ -143,7 +143,7 @@ const RiskInput = (props: {
 }) => {
     const { allowRisk, setAllowRisk, cellClass, formControlClass } = props;
     return (
-        <Grid item xs={6} className={cellClass}>
+        <Grid item xs={12} md={6} className={cellClass}>
             <FormControl className={formControlClass}>
                 <Typography>Are you willing to risk the server stopping suddenly? (up to 3x cheaper)</Typography>
                 <Select value={allowRisk} onChange={(event) => setAllowRisk(event.target.value as string)}>

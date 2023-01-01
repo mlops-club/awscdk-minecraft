@@ -8,6 +8,7 @@ from minecraft_paas_api.schemas.server_status import DeploymentStatus, Deploymen
 from minecraft_paas_api.services.minecraft_server_provisioner import MinecraftServerProvisioner
 from minecraft_paas_api.settings import Settings
 from starlette.status import HTTP_404_NOT_FOUND
+from loguru import logger
 
 ROUTER = APIRouter()
 
@@ -24,9 +25,17 @@ def get_server_provisioner(request: Request) -> MinecraftServerProvisioner:
 async def start_minecraft_server(request: Request, payload: StartServerRequestPayload):
     """Start the server if it is not already running."""
     server_provisioner = get_server_provisioner(request)
-    server_provisioner.start_server()
-    server_provisioner.stop_server_in_n_minutes(minutes_to_wait_until_stop_server=payload.play_time_minutes)
-    return DeploymentStatusResponse(status=DeploymentStatus.SERVER_PROVISIONING)
+
+    server_status: DeploymentStatus = server_provisioner.get_minecraft_server_status()
+
+    if server_status == DeploymentStatus.SERVER_OFFLINE:
+        logger.info("Server is offline, starting server...")
+        server_provisioner.start_server()
+        server_provisioner.stop_server_in_n_minutes(minutes_to_wait_until_stop_server=payload.play_time_minutes)
+        return DeploymentStatusResponse(status=DeploymentStatus.SERVER_PROVISIONING)
+
+    logger.info(f"Server is in state {server_status}. Not starting server.")
+    return DeploymentStatusResponse(status=server_status)
 
 
 @ROUTER.delete("/minecraft-server", response_model=DeploymentStatusResponse)

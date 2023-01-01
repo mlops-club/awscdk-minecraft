@@ -42,8 +42,8 @@ function backup-to-s3() {
 # start an infinite loop that backs up the server files on a regular interval
 function backup-to-s3-on-interval() {
     while true; do
-        backup-to-s3
         sleep $BACKUP_INTERVAL_SECONDS
+        backup-to-s3
     done
 }
 
