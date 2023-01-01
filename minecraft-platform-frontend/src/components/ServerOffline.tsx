@@ -69,6 +69,7 @@ const ServerOffline = (props: {
         <Card className={classes.card}>
 
             <CardContent>
+                <Typography variant="h5" style={{ marginBottom: "20px" }}>The server is <strong>offline</strong>. Sign in and submit this form to start it.</Typography>
                 <Grid container direction="row" spacing={2} className={classes.grid}>
                     <ServerUptimeInput hours={hours} setHours={setHours} cellClass={classes.cell} formControlClass={classes.formControl} />
                     <ServerSizeInput serverSize={serverSize} setServerSize={setServerSize} cellClass={classes.cell} formControlClass={classes.formControl} />

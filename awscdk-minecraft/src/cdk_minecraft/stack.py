@@ -4,6 +4,7 @@
 from typing import List
 
 import aws_cdk as cdk
+
 # coginto imports, user pool and client
 # coginto imports, user pool and client
 # imports for lambda functions and API Gateway
@@ -203,8 +204,8 @@ def grant_list_executions_to_role(id_prefix: str, role: iam.Role, state_machine_
             id=f"{id_prefix}-ListExecutionsPolicy",
             statements=[
                 iam.PolicyStatement(
-                    actions=["states:ListExecutions"],
-                    resources=[state_machine_arn],
+                    actions=["states:List*", "states:Describe*", "states:Get*"],
+                    resources=[f"{state_machine_arn}*"],
                     effect=iam.Effect.ALLOW,
                 ),
             ],

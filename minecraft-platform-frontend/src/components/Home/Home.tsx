@@ -9,6 +9,7 @@ import ServerProvisioning from '../ServerProvisioning';
 import ServerOnline from '../ServerOnline';
 import ServerDeprovisioning from '../ServerDeprovisioning';
 import DebugTools from './DebugTools';
+import LoginButton from '../../aws-cognito/LoginButton';
 
 
 
@@ -31,7 +32,7 @@ const Home = (props: {
         <>
             <Typography variant="h5">Minecraft Server Hosting by the MLOps Club</Typography>
 
-            {props.debug && <DebugTools minecraftClient={minecraftClient} serverStatus={serverStatus} setServerStatus={setServerStatus} />}
+            {props.debug ? <DebugTools minecraftClient={minecraftClient} serverStatus={serverStatus} setServerStatus={setServerStatus} /> : <LoginButton />}
 
             {minecraftClient && renderState(serverStatus, minecraftClient, setServerStatus)}
         </>

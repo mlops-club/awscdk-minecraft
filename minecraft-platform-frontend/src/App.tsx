@@ -16,7 +16,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <div className="App" >
-        <Home debug />
+        <Home debug={false} />
       </div >
     </ThemeProvider>
   );
