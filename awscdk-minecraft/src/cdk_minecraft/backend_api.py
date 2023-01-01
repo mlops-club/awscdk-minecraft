@@ -12,6 +12,7 @@ from cdk_minecraft.constants import MINECRAFT_PLATFORM_BACKEND_API__DIR
 from constructs import Construct
 
 REACT_LOCALHOST = "http://localhost:3000"
+SERVER_CLOUD_FORMATION_STACK_NAME = "awscdk-minecraft-server"
 
 
 class MinecraftPaaSRestApi(Construct):
@@ -213,8 +214,36 @@ def make_fast_api_function(
             # TODO: get these values from variables that are guaranteed to be of the
             # correct values.
             "CLOUD_FORMATION_SERVER_IP_OUTPUT_KEY_NAME": "MinecraftServerIp",
-            "CLOUD_FORMATION_STACK_NAME": "awscdk-minecraft-server",
+            "CLOUD_FORMATION_STACK_NAME": SERVER_CLOUD_FORMATION_STACK_NAME,
         },
     )
 
+    grant_cloudformation_stack_read_access(
+        stack_name=SERVER_CLOUD_FORMATION_STACK_NAME,
+        role=fast_api_function.role,
+        stack_region=cdk.Stack.of(scope).region,
+        stack_account=cdk.Stack.of(scope).account,
+    )
+
     return fast_api_function
+
+
+def grant_cloudformation_stack_read_access(
+    stack_name: str,
+    role: iam.Role,
+    stack_region: str,
+    stack_account: str,
+):
+    """
+    Give the given role permission to read the outputs of the given cloudformation stack.
+
+    This is necessary because the lambda function needs to read the outputs of the cloudformation stack
+    in order to know the IP address of the minecraft server.
+    """
+    role.add_to_policy(
+        iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions=["cloudformation:Describe*", "cloudformation:Get*", "cloudformation:List*"],
+            resources=[f"arn:aws:cloudformation:{stack_region}:{stack_account}:stack/{stack_name}*"],
+        )
+    )

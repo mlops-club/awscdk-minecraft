@@ -20,6 +20,8 @@ from minecraft_paas_api.settings import Settings
 from mypy_boto3_cloudformation.literals import StackStatusType
 from mypy_boto3_stepfunctions.type_defs import ExecutionListItemTypeDef, StartExecutionOutputTypeDef
 
+from loguru import logger
+
 
 class MinecraftServerProvisioner(IService):
     """Class deines template for provisioning a Minecraft server."""
@@ -100,18 +102,22 @@ class MinecraftServerProvisioner(IService):
         minecraft_server_stack_status: Optional["StackStatusType"] = try_get_cloud_formation_stack_status(
             stack_name=self.cloudformation_stack_name
         )
+        logger.info(f"Cloudformation stack status: {minecraft_server_stack_status}")
 
         last_provisioner_execution: Optional[ExecutionListItemTypeDef] = get_latest_statemachine_execution(
             state_machine_arn=self.provisioner_state_machine_arn
         )
+        logger.info(f"Last execution {last_provisioner_execution}")
 
         # SERVER_PROVISIONING
         if last_provisioner_execution and last_provisioner_execution["status"] == "RUNNING":
+            logger.info("Server is provisioning")
             return DeploymentStatus.SERVER_PROVISIONING
 
         last_destroyer_execution: Optional[ExecutionListItemTypeDef] = get_latest_statemachine_execution(
             state_machine_arn=self.destroyer_state_machine_arn
         )
+        logger.info(f"Last execution {last_destroyer_execution}")
 
         # SERVER_DEPROVISIONING
         if last_destroyer_execution and last_destroyer_execution["status"] == "RUNNING":
@@ -125,6 +131,7 @@ class MinecraftServerProvisioner(IService):
                 execution_start_time: datetime = get_state_machine_execution_start_timestamp(
                     execution_arn=last_destroyer_execution["executionArn"]
                 )
+                logger.info(f"Execution start time: {execution_start_time}")
 
                 wait_n_seconds_before_destroy: int = execution_input["wait_n_seconds_before_destroy"]
                 scheduled_destroy_time: datetime = execution_start_time + timedelta(
@@ -150,10 +157,16 @@ class MinecraftServerProvisioner(IService):
                 provisioning_stop_time: datetime = get_state_machine_execution_start_timestamp(
                     execution_arn=last_provisioner_execution["executionArn"]
                 )
+                logger.info(f"Provisioning stop time: {provisioning_stop_time}")
+
                 deprovisioning_stop_time: datetime = get_state_machine_execution_start_timestamp(
                     execution_arn=last_destroyer_execution["executionArn"]
                 )
+                logger.info(f"Deprovisioning stop time: {deprovisioning_stop_time}")
+
                 last_failure_was_due_to_provisioning: bool = provisioning_stop_time >= deprovisioning_stop_time
+                logger.info(f"Last failure was due to provisioning: {last_failure_was_due_to_provisioning}")
+
                 return (
                     DeploymentStatus.SERVER_PROVISIONING_FAILED
                     if last_failure_was_due_to_provisioning
@@ -162,10 +175,12 @@ class MinecraftServerProvisioner(IService):
 
         # SERVER_ONLINE
         if minecraft_server_stack_status in ["CREATE_COMPLETE", "UPDATE_COMPLETE"]:
+            logger.info("Server is online")
             return DeploymentStatus.SERVER_ONLINE
 
         # SERVER_OFFLINE
         if minecraft_server_stack_status in ["DELETE_COMPLETE", None]:
+            logger.info("Server is offline")
             return DeploymentStatus.SERVER_OFFLINE
 
         # default? we should have returned something by now, but I can't prove that we have (yet)

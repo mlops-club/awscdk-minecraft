@@ -205,7 +205,8 @@ def grant_list_executions_to_role(id_prefix: str, role: iam.Role, state_machine_
             statements=[
                 iam.PolicyStatement(
                     actions=["states:List*", "states:Describe*", "states:Get*"],
-                    resources=[f"{state_machine_arn}*"],
+                    # resources=[f"{state_machine_arn}*"],
+                    resources=["*"],
                     effect=iam.Effect.ALLOW,
                 ),
             ],

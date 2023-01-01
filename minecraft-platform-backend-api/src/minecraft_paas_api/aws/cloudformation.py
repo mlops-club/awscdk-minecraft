@@ -4,6 +4,7 @@ import boto3
 from mypy_boto3_cloudformation import CloudFormationClient
 from mypy_boto3_cloudformation.literals import StackStatusType
 from mypy_boto3_cloudformation.type_defs import DescribeStacksOutputTypeDef
+from loguru import logger
 
 
 def try_get_cloud_formation_stack_status(
@@ -21,8 +22,9 @@ def try_get_cloud_formation_stack_status(
     try:
         response: "DescribeStacksOutputTypeDef" = cfn_client.describe_stacks(StackName=stack_name)
         stack_status: "StackStatusType" = response["Stacks"][0]["StackStatus"]
-    except cfn_client.exceptions.ClientError:
+    except cfn_client.exceptions.ClientError as err:
         stack_status = None
+        logger.error(f"Error getting CloudFormation stack status: {err}")
     return stack_status
 
 
@@ -54,8 +56,9 @@ def try_get_cloud_formation_stack_outputs(
         outputs: dict = {
             output["OutputKey"]: output["OutputValue"] for output in response["Stacks"][0]["Outputs"]
         }
-    except cfn_client.exceptions.ClientError:
+    except cfn_client.exceptions.ClientError as err:
         outputs = None
+        logger.error(f"Error getting CloudFormation stack outputs: {err}")
     return outputs
 
 
