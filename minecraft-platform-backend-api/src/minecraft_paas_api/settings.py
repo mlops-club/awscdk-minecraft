@@ -27,10 +27,16 @@ class Settings(BaseSettings):
 
         Read about the various options settable in this Config class here:
         https://docs.pydantic.dev/usage/settings/
+
+        Also here:
+        https://docs.pydantic.dev/usage/model_config/
         """
 
         # causes attributes of Settings to be read from environment variables; ignoring case
         case_sensitive = False
+
+        # make all attributes of Settings immutable
+        frozen = True
 
     environment: Literal["development", "production"] = "development"
 
