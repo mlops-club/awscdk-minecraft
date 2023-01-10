@@ -9,29 +9,31 @@ The goal of this project is to make a single pip-installable package that allows
 to provision an entire, *cheap*, Minecraft-server-hosting Platform as a Service to their
 personal Amazon Web Services account.
 
+<!-- hrefs to images are absolute URLs to GitHub so that they work on PyPI -->
+
 <figure style="width: 500px; text-align: center;">
-<figcaption style="padding: 10px">Login</figcaption>
-<img src="./docs/ui/hosted-ui.png" style="width: 100%;"/>
+<p style="padding: 10px">Login</p>
+<img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/hosted-ui.png?raw=true" style="width: 100%;"/>
 </figure>
 
 <figure style="width: 500px; text-align: center;">
 <figcaption style="padding: 10px">Start a server</figcaption>
-<img src="./docs/ui/server-offline.png" style="width: 100%;"/>
+<img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/server-offline.png?raw=true" style="width: 100%;"/>
 </figure>
 
 <figure style="width: 500px; text-align: center;">
 <figcaption style="padding: 10px">Get the IP address</figcaption>
-<img src="./docs/ui/server-online.png" style="width: 100%;"/>
+<img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/server-online.png?raw=true" style="width: 100%;"/>
 </figure>
 
 <figure style="width: 500px; text-align: center;">
 <figcaption style="padding: 10px">Connect</figcaption>
-<img src="./docs/ui/enter-ip.png" style="width: 100%;"/>
+<img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/enter-ip.png?raw=true" style="width: 100%;"/>
 </figure>
 
 <figure style="width: 500px; text-align: center;">
 <figcaption style="padding: 10px">Play!</figcaption>
-<img src="./docs/ui/phitoduck-joined-game.png" style="width: 100%;"/>
+<img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/phitoduck-joined-game.png?raw=true" style="width: 100%;"/>
 </figure>
 
 ## Usage
@@ -112,11 +114,11 @@ If you're on windows, you'll have the best contributor experience using the Wind
 
 > 💡 Bookmark this repository so you can get quick access to these links.
 
-|                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                           |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|     <a href="https://app.gather.town/invite?token=f8SJlx7bS9KO6cOWvqIW" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/gather-town.png"></a>  <br/>Our virtual park (for remote collab)      |     <a href="https://join.slack.com/t/rootskiio/shared_invite/zt-13avx8j84-mocJVx5wFAGNf5wUuy07OA" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/slack.png"></a> <br/>Slack, in the `#hackathon` channel     |
-| <a href="https://www.figma.com/file/LzVP5Ed3i7NQqOkw6YbMVG/Untitled?node-id=0%3A1&t=uW2UsnZVnTNStUjm-1" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/roadmap.png"></a> <br/>Roadmap, tasks | <a href="https://www.figma.com/file/6y4vDowRkIZPTYOztIxgy7/Minecraft-Architecture?node-id=0%3A1&t=5JKxB5ylSnLLDZ4b-1" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/architecture.png"></a> <br/>Architecture |
-|             <a href="https://d-926768adcc.awsapps.com/start" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/aws-console-login.png"></a> <br/>`mlops-club` AWS account login page             |                           <a href="https://docs.rootski.io/" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="./docs/rootski.png"></a> <br/>Similar project with reference code / resources                            |
+|                                                                                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                                                                                                                                            |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|     <a href="https://app.gather.town/invite?token=f8SJlx7bS9KO6cOWvqIW" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/gather-town.png?raw=true"></a>  <br/>Our virtual park (for remote collab)      |     <a href="https://join.slack.com/t/rootskiio/shared_invite/zt-13avx8j84-mocJVx5wFAGNf5wUuy07OA" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/slack.png?raw=true"></a> <br/>Slack, in the `#hackathon` channel     |
+| <a href="https://www.figma.com/file/LzVP5Ed3i7NQqOkw6YbMVG/Untitled?node-id=0%3A1&t=uW2UsnZVnTNStUjm-1" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/roadmap.png?raw=true"></a> <br/>Roadmap, tasks | <a href="https://www.figma.com/file/6y4vDowRkIZPTYOztIxgy7/Minecraft-Architecture?node-id=0%3A1&t=5JKxB5ylSnLLDZ4b-1" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/architecture.png?raw=true"></a> <br/>Architecture |
+|             <a href="https://d-926768adcc.awsapps.com/start" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/aws-console-login.png?raw=true"></a> <br/>`mlops-club` AWS account login page             |                           <a href="https://docs.rootski.io/" target="_blank"><img style="float: left; width:  300px; height: 100%; background-size: cover;" src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/rootski.png?raw=true"></a> <br/>Similar project with reference code / resources                            |
 
 ### How do I run this project locally?
 
