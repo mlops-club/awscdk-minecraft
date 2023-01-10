@@ -49,11 +49,13 @@ cdk-deploy: #require-venv
         cdk deploy \
             --all \
             --diff \
+            --require-approval never \
             --profile {{AWS_PROFILE}} \
-            --require-approval any-change \
             --region {{AWS_REGION}} \
-            --app "python app.py" --hotswap
+            --app "python app.py" # --hotswap
 
+    # --require-approval any-change
+    
 cdk-diff: #require-venv
     cd {{CDK_PLATFORM_DIR}} \
     && \
@@ -75,7 +77,7 @@ cdk-destroy: #require-venv
         cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
 # generate CloudFormation from the code in "{{CDK_PLATFORM_DIR}}"
-cdk-synth: require-venv #login-to-aws
+cdk-synth: require-venv login-to-aws
     cd {{CDK_PLATFORM_DIR}} && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
@@ -193,7 +195,7 @@ build-python-package: clean
     #!/bin/bash
 
     # fail on first error
-    set -e
+    set -ex
 
     export BUILD_DIR="build_/{{CDK_PLATFORM_DIR}}"
     mkdir -p "${BUILD_DIR}"
@@ -206,12 +208,12 @@ build-python-package: clean
     # 'cp -r' copies the actual contents of symlinks, so after this
     # command is run, the copied folder won't have any symlinks, but
     # real copies of the files.
-    cp -r "{{CDK_PLATFORM_DIR}}/src" "$BUILD_DIR/"
-    cp "{{CDK_PLATFORM_DIR}}/setup.cfg" "$BUILD_DIR/"
-    cp "{{CDK_PLATFORM_DIR}}/setup.py" "$BUILD_DIR/"
-    cp "{{CDK_PLATFORM_DIR}}/pyproject.toml" "$BUILD_DIR/"
-    cp "{{CDK_PLATFORM_DIR}}/MANIFEST.in" "$BUILD_DIR/"
-    cp "{{CDK_PLATFORM_DIR}}/README.md" "$BUILD_DIR/"
+    cp -r "{{CDK_PLATFORM_DIR}}/src" "${BUILD_DIR}/"
+    cp "{{CDK_PLATFORM_DIR}}/setup.cfg" "${BUILD_DIR}/"
+    cp "{{CDK_PLATFORM_DIR}}/setup.py" "${BUILD_DIR}/"
+    cp "{{CDK_PLATFORM_DIR}}/pyproject.toml" "${BUILD_DIR}/"
+    cp "{{CDK_PLATFORM_DIR}}/MANIFEST.in" "${BUILD_DIR}/"
+    cp "{{CDK_PLATFORM_DIR}}/README.md" "${BUILD_DIR}/"
 
     python -m pip install build
     cd "${BUILD_DIR}" && echo `pwd` && \
@@ -243,21 +245,29 @@ publish-python-package-prod:
         dist/*
 
 clean:
-    rm -rf {{STATIC_SITE_BUILD_OUTPUT_DIR}}   || echo "no static site built"
-    rm -rf ./dist/          **/dist/             || echo "no matches found for **/dist/"
-    rm -rf .projen/         **/.projen/          || echo "no matches found for **/.projen/"
-    rm -rf ./build/         **/build/            || echo "no matches found for **/build/"
-    rm -rf ./build_/        **/build_/          || echo "no matches found for **/build/"
-    rm -rf ./cdk.out/       **/cdk.out/          || echo "no matches found for **/cdk.out/"
-    rm -rf ./.DS_Store/     **/.DS_Store         || echo "no matches found for **/.DS_Store"
-    rm -rf ./.mypy_cache/   **/.mypy_cache      || echo "no matches found for **/.mypy_cache"
-    rm -rf ./.pytest_cache/ **/.pytest_cache  || echo "no matches found for **/*.pytest_cache"
-    rm -rf ./test/          **/test              || echo "no matches found for **/test"
-    rm -rf ./.coverage/     **/.coverage         || echo "no matches found for **/.coverage"
-    rm -rf ./.ipynb_checkpoints/ **/.ipynb_checkpoints || echo "no matches found for **/.ipynb_checkpoints"
-    rm -rf ./.pyc/          **/*.pyc             || echo "no matches found for **/*.pyc"
-    rm -rf ./__pycache__/   **/__pycache__      || echo "no matches found for **/__pycache__"
-    rm -rf ./*.egg-info/    **/*.egg-info        || echo "no matches found for **/*.egg-info"
-    rm cdk.context.json     **/*cdk.context.json || echo "no matches found for cdk.context.json"
+    rm -rf {{STATIC_SITE_BUILD_OUTPUT_DIR}} || echo "no static site built"
+    find . \
+        -name "node_modules" -prune -false \
+        -o -name "venv" -prune -false \
+        -o -name ".git" -prune -false \
+        -type d -name "*.egg-info" \
+        -o -type d -name "dist" \
+        -o -type d -name ".projen" \
+        -o -type d -name "build_" \
+        -o -type d -name "build" \
+        -o -type d -name "cdk.out" \
+        -o -type d -name ".mypy_cache" \
+        -o -type d -name ".pytest_cache" \
+        -o -type d -name "test-reports" \
+        -o -type d -name "htmlcov" \
+        -o -type d -name ".coverage" \
+        -o -type d -name ".ipynb_checkpoints" \
+        -o -type d -name "__pycache__" \
+        -o -type f -name "coverage.xml" \
+        -o -type f -name ".DS_Store" \
+        -o -type f -name "*.pyc" \
+        -o -type f -name "*cdk.context.json" | xargs rm -rf {}
+
+
 
 release-to-pypi: clean build-python-package publish-python-package-test publish-python-package-prod
