@@ -17,22 +17,22 @@ personal Amazon Web Services account.
 </figure>
 
 <figure style="width: 500px; text-align: center;">
-<figcaption style="padding: 10px">Start a server</figcaption>
+<p style="padding: 10px">Start a server</p>
 <img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/server-offline.png?raw=true" style="width: 100%;"/>
 </figure>
 
 <figure style="width: 500px; text-align: center;">
-<figcaption style="padding: 10px">Get the IP address</figcaption>
+<p style="padding: 10px">Get the IP address</p>
 <img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/server-online.png?raw=true" style="width: 100%;"/>
 </figure>
 
 <figure style="width: 500px; text-align: center;">
-<figcaption style="padding: 10px">Connect</figcaption>
+<p style="padding: 10px">Connect</p>
 <img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/enter-ip.png?raw=true" style="width: 100%;"/>
 </figure>
 
 <figure style="width: 500px; text-align: center;">
-<figcaption style="padding: 10px">Play!</figcaption>
+<p style="padding: 10px">Play!</p>
 <img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/phitoduck-joined-game.png?raw=true" style="width: 100%;"/>
 </figure>
 
@@ -69,8 +69,6 @@ can create a user in that user pool. It will be in whichever region you deployed
 
 Finally, one of the stack outputs will be the URL of the Minecraft Platform frontend. Visit the
 site, log in, and start your server!
-
-The result of the server
 
 ## System requirements
 
