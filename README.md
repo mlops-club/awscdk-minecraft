@@ -38,13 +38,20 @@ personal Amazon Web Services account.
 
 ## Usage
 
-First, install the AWS CDK stack exposed by this package:
+### (1) Be sure to have the the following installed:
+
+- [Python](https://www.python.org/downloads/) 3.8 or higher
+- [NodeJS](https://nodejs.org/en/download/) 14 or higher (a dependency of the AWS CDK CLI)
+- [AWS CDK CLI](https://docs.aws.amazon.com/cdk/latest/guide/cli.html)
+- [Docker](https://docs.docker.com/get-docker/) (should be installed and *running*)
+  
+### (2) Install the AWS CDK stack exposed by this package
 
 ```bash
 pip install awscdk-minecraft
 ```
 
-Second, use it in your CDK app:
+### (3) Use it in your CDK app
 
 ```python
 # app.py
@@ -63,22 +70,22 @@ APP.synth()
 > Note: `app.py` is an AWS Cloud Development Kit concept. If you are not familiar with
 > AWS CDK and what an `app.py` file is, you can read more about it in the [AWS CDK docs](https://aws.amazon.com/cdk/).
 
-Third, you will need to register a user in AWS Cognito UI so that you can log into the website
+### (4) Create a Cognito User in the AWS Console
+
+You will need to register a user in AWS Cognito UI so that you can log into the website
 deployed by the stack. A Cognito User Pool is created by the stack for this purpose. You
 can create a user in that user pool. It will be in whichever region you deployed the stack to.
 
-Finally, one of the stack outputs will be the URL of the Minecraft Platform frontend. Visit the
+### (5) Play!
+
+One of the stack outputs will be the URL of the Minecraft Platform frontend. Visit the
 site, log in, and start your server!
 
-## System requirements
+Share this link with friends and create Cognito users for them as well if you
+want them to be able to start and stop the server, too.
 
-- AWS CDK CLI (and `npm`/`node` by extension)
-- Docker, installed and running
+Otherwise, just share the IP address with any friends you'd like to be able to join the game.
 
-
-## Architecture
-
-Coming soon...
 
 ## Contributing
 
