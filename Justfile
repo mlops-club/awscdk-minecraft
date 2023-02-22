@@ -55,7 +55,7 @@ cdk-deploy: #require-venv
             --app "python app.py" # --hotswap
 
     # --require-approval any-change
-    
+
 cdk-diff: #require-venv
     cd {{CDK_PLATFORM_DIR}} \
     && \
@@ -267,6 +267,24 @@ clean:
         -o -type f -name ".DS_Store" \
         -o -type f -name "*.pyc" \
         -o -type f -name "*cdk.context.json" | xargs rm -rf {}
+
+
+install-recommended-vscode-extensions:
+    code --force --install-extension ms-python.python \
+         --force --install-extension ms-python.black-formatter \
+         --force --install-extension ms-python.pylint \
+         --force --install-extension ms-python.flake8 \
+         --force --install-extension ms-python.vscode-pylance \
+         --force --install-extension ms-python.isort \
+         --force --install-extension skellock.just \
+         --force --install-extension yzhang.markdown-all-in-one \
+         --force --install-extension bungcip.better-toml \
+         --force --install-extension eamodio.gitlens \
+         --force --install-extension ms-azuretools.vscode-docker \
+         --force --install-extension ms-vsliveshare.vsliveshare \
+         --force --install-extension christian-kohler.path-intellisense
+
+
 
 
 

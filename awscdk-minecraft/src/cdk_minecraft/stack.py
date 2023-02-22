@@ -4,7 +4,6 @@
 from typing import List
 
 import aws_cdk as cdk
-
 # coginto imports, user pool and client
 # coginto imports, user pool and client
 # imports for lambda functions and API Gateway
@@ -36,6 +35,8 @@ class MinecraftPaasStack(Stack):
 
     :param scope: The scope of the stack
     :param construct_id: The ID of the stack
+    :param cognito_domain_name: a domain name for the cognito login page e.g. `mlops-club-login` \
+        any URL compatible string will do as long as it is globally unique within AWS (no one else has taken it)
     :param **kwargs: Additional arguments to pass to the stack
 
     :ivar job_queue: The job queue for the batch jobs
@@ -48,7 +49,9 @@ class MinecraftPaasStack(Stack):
     :ivar mc_rest_api: The REST API for the Minecraft PaaS
     """
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(
+        self, scope: Construct, construct_id: str, login_page_domain_name_prefix: str, **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         """Backups"""
@@ -97,7 +100,10 @@ class MinecraftPaasStack(Stack):
         """OAuth identity provider"""
         # add an API Gateway endpoint to interact with the lambda function
         cognito_service = MinecraftCognitoConstruct(
-            scope=self, construct_id="MinecraftCognitoService", frontend_url=frontend_url
+            scope=self,
+            construct_id="MinecraftCognitoService",
+            frontend_url=frontend_url,
+            cognito_domain_name=login_page_domain_name_prefix,
         )
         authorizer = apigw.CognitoUserPoolsAuthorizer(
             scope=self,
@@ -217,7 +223,13 @@ def grant_list_executions_to_role(id_prefix: str, role: iam.Role, state_machine_
 class MinecraftCognitoConstruct(Construct):
     """Class to create authentication for the Minecraft PaaS."""
 
-    def __init__(self, scope: Construct, construct_id: str, frontend_url: str) -> None:
+    def __init__(
+        self,
+        scope: Construct,
+        construct_id: str,
+        frontend_url: str,
+        cognito_domain_name: str,
+    ) -> None:
         super().__init__(scope, construct_id)
 
         # create a user pool, do not allow users to sign up themselves.
@@ -304,7 +316,7 @@ class MinecraftCognitoConstruct(Construct):
         # add a domain to the user pool
         self.domain = self.user_pool.add_domain(
             id="MinecraftUserPoolDomain",
-            cognito_domain=cognito.CognitoDomainOptions(domain_prefix="minecraft-user-pool"),
+            cognito_domain=cognito.CognitoDomainOptions(domain_prefix=cognito_domain_name),
         )
 
         self.fully_qualified_domain_name = f"{self.domain.domain_name}.auth.{scope.region}.amazoncognito.com"

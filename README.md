@@ -44,7 +44,7 @@ personal Amazon Web Services account.
 - [NodeJS](https://nodejs.org/en/download/) 14 or higher (a dependency of the AWS CDK CLI)
 - [AWS CDK CLI](https://docs.aws.amazon.com/cdk/latest/guide/cli.html)
 - [Docker](https://docs.docker.com/get-docker/) (should be installed and *running*)
-  
+
 ### (2) Install the AWS CDK stack exposed by this package
 
 ```bash
@@ -62,9 +62,15 @@ from cdk_minecraft import MinecraftPaasStack
 
 APP = App()
 
-MinecraftPaasStack(APP, "awscdk-minecraft")
+MinecraftPaasStack(
+   APP,
+   "awscdk-minecraft",
+   # login_page_domain_name_prefix just needs to be unique across all AWS accounts
+   login_page_domain_name_prefix="mlops-club-minecraft-login"
+)
 
 APP.synth()
+
 ```
 
 > Note: `app.py` is an AWS Cloud Development Kit concept. If you are not familiar with
