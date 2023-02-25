@@ -28,7 +28,12 @@ async def start_minecraft_server(request: Request, payload: StartServerRequestPa
 
     server_status: DeploymentStatus = server_provisioner.get_minecraft_server_status()
 
-    if server_status == DeploymentStatus.SERVER_OFFLINE:
+    server_in_startable_state = server_status not in [
+        DeploymentStatus.SERVER_ONLINE,
+        DeploymentStatus.SERVER_DEPROVISIONING,
+        DeploymentStatus.SERVER_PROVISIONING,
+    ]
+    if server_in_startable_state:
         logger.info("Server is offline, starting server...")
         server_provisioner.start_server()
         server_provisioner.stop_server_in_n_minutes(minutes_to_wait_until_stop_server=payload.play_time_minutes)
