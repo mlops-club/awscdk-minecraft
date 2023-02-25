@@ -4,6 +4,7 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/awscdk-minecraft?color=blue&style=for-the-badge&logo=pypi)
 [![MPL 2.0](https://img.shields.io/badge/license-MPL%202.0-blue.svg?style=for-the-badge)](./LICENSE.txt)
 
+<img src="https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/ui/minecraft-selfie.png?raw=true" style="width: 100%;"/>
 
 The goal of this project is to make a single pip-installable package that allows anyone
 to provision an entire, *cheap*, Minecraft-server-hosting Platform as a Service to their
