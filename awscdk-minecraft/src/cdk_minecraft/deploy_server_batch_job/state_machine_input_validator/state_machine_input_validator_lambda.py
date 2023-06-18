@@ -22,7 +22,5 @@ def make_lambda_that_validates_input_of_the_provision_server_state_machine(
         index="index.py",
         runtime=lambda_.Runtime.PYTHON_3_8,
         timeout=cdk.Duration.seconds(30),
-        bundling=lambda_python.BundlingOptions(
-            image=cdk.DockerImage.from_registry(image="lambci/lambda:build-python3.8"),
-        ),
+        bundling=lambda_python.BundlingOptions(build_args={"platform": "linux/amd64"}),
     )

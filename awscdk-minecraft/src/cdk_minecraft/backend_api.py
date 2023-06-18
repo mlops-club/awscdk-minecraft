@@ -153,7 +153,7 @@ def make_fast_api_function(
     deprovision_server_state_machine_arn: str,
     frontend_cors_url: str,
 ) -> lambda_.Function:
-    """
+    r"""
     Create a lambda function with the FastAPI app.
 
     To prepare the python depencies for the lambda function, this stack
@@ -200,8 +200,8 @@ def make_fast_api_function(
                     "-c",
                     "mkdir -p /asset-output"
                     # + "&& pip install -r ./aws-lambda/requirements.txt -t /asset-output"
-                    + "&& pip install .[lambda] --target /asset-output"
-                    + "&& cp ./aws-lambda/index.py /asset-output"
+                    + " && pip install .[lambda] --target /asset-output"
+                    + " && cp ./aws-lambda/index.py /asset-output"
                     # + "&& rm -rf /asset-output/boto3 /asset-output/botocore",
                 ],
             ),

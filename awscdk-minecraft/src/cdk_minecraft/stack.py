@@ -1,7 +1,7 @@
 """Boilerplate stack to make sure the CDK is set up correctly."""
 
 
-from typing import List
+from typing import List, Optional
 
 import aws_cdk as cdk
 # coginto imports, user pool and client
@@ -50,17 +50,29 @@ class MinecraftPaasStack(Stack):
     """
 
     def __init__(
-        self, scope: Construct, construct_id: str, login_page_domain_name_prefix: str, **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        login_page_domain_name_prefix: str,
+        minecraft_data_bucket_name: Optional[str] = None,
+        **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         """Backups"""
-        backups_bucket = s3.Bucket(
-            scope=self,
-            id="MinecraftServerBackupsBucket",
-            # TODO: make this RETAIN later
-            removal_policy=cdk.RemovalPolicy.DESTROY,
-        )
+        backups_bucket: Optional[s3.Bucket] = None
+        if minecraft_data_bucket_name:
+            backups_bucket = s3.Bucket.from_bucket_name(
+                scope=self,
+                id="MinecraftServerBackupsBucket",
+                bucket_name=minecraft_data_bucket_name,
+            )
+        else:
+            backups_bucket = s3.Bucket(
+                scope=self,
+                id="MinecraftServerBackupsBucket",
+                removal_policy=cdk.RemovalPolicy.RETAIN,
+            )
 
         """State machines"""
         job_queue: batch_alpha.JobQueue = BatchJobQueue(

@@ -46,6 +46,13 @@ personal Amazon Web Services account.
 - [AWS CDK CLI](https://docs.aws.amazon.com/cdk/latest/guide/cli.html)
 - [Docker](https://docs.docker.com/get-docker/) (should be installed and *running*)
 
+> Note: This library makes use of some of AWS's public docker images. [You will need to log into](https://docs.aws.amazon.com/AmazonECR/latest/public/public-registries.html) AWS's public docker registry (public.ecr.aws).
+
+```bash
+# get a temporary login session to public.ecr.aws
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+```
+
 ### (2) Install the AWS CDK stack exposed by this package
 
 ```bash
@@ -71,7 +78,6 @@ MinecraftPaasStack(
 )
 
 APP.synth()
-
 ```
 
 > Note: `app.py` is an AWS Cloud Development Kit concept. If you are not familiar with

@@ -5,13 +5,28 @@ services:
   cdk:
     image: mlops-club/cdk-server-deployer
     # command: cdk synth
-    command: cdk synth '*' --app 'python3 app.py'
+    #command: cdk synth '*' --app 'python3 app.py'
+    command: cdk deploy '*' --app 'python3 app.py' --require-approval never
+    platform: linux/amd64
     # command: cdk deploy --app 'python3 app.py' --require-approval=never
-    env_file:
-      - .env
+    #env_file:
+    #  - .env
+
     environment:
-      AWS_REGION: us-west-2
-      AWS_ACCOUNT_ID: "630013828440"
+      #AWS_REGION: us-west-2
+      #AWS_ACCOUNT_ID: "630013828440"
+      # these env vars can be grabbed from the AWS Batch UI in the Job Definition
+      AWS_PROFILE: mlops-club
+      AWS_REGION:	us-west-2
+      AWS_ACCOUNT_ID:	630013828440
+      MANAGED_BY_AWS:	STARTED_BY_STEP_FUNCTIONS
+      BACKUP_SERVICE_DOCKER_IMAGE_URI:	630013828440.dkr.ecr.us-west-2.amazonaws.com/awscdk-minecraft-mcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo192beeb7-jwnlifcq2rzf
+      MINECRAFT_SERVER_BACKUPS_BUCKET_NAME:	awscdk-minecraft-minecraftserverbackupsbucketce8b-18lbuip34jg7v
+      AWS_ACCOUNT:	630013828440
+      BACKUP_SERVICE_ECR_REPO_ARN:	arn:aws:ecr:us-west-2:630013828440:repository/awscdk-minecraft-mcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo192beeb7-jwnlifcq2rzf
+
+    volumes:
+      - ~/.aws:/root/.aws:ro
     build:
       context: .
       dockerfile: ./Dockerfile
