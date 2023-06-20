@@ -39,7 +39,7 @@ install: require-venv
     # git lfs install
 
 
-cdk-deploy: #require-venv
+cdk-deploy: require-venv login-to-public-ecr
     cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
@@ -56,7 +56,7 @@ cdk-deploy: #require-venv
 
     # --require-approval any-change
 
-cdk-diff: #require-venv
+cdk-diff: require-venv login-to-public-ecr
     cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
@@ -68,7 +68,7 @@ cdk-diff: #require-venv
             --region {{AWS_REGION}} \
             --app "python3 app.py"
 
-cdk-destroy: #require-venv
+cdk-destroy: login-to-public-ecr require-venv
     cd {{CDK_PLATFORM_DIR}} \
     && \
         AWS_PROFILE={{AWS_PROFILE}} \
@@ -77,7 +77,7 @@ cdk-destroy: #require-venv
         cdk destroy --all --diff --profile {{AWS_PROFILE}} --region {{AWS_REGION}} --app "python3 app.py"
 
 # generate CloudFormation from the code in "{{CDK_PLATFORM_DIR}}"
-cdk-synth: require-venv login-to-aws
+cdk-synth: require-venv login-to-aws login-to-public-ecr
     cd {{CDK_PLATFORM_DIR}} && \
         AWS_PROFILE={{AWS_PROFILE}} \
         AWS_ACCOUNT_ID=$(just get-aws-account-id) \
@@ -89,6 +89,9 @@ open-aws:
     #!/bin/bash
     MLOPS_CLUB_SSO_START_URL="https://d-926768adcc.awsapps.com/start"
     open $MLOPS_CLUB_SSO_START_URL
+
+login-to-public-ecr:
+    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
 # Ensure that an "mlops-club" AWS CLI profile is configured. Then go through an AWS SSO
 # sign in flow to get temporary credentials for that profile. If this command finishes successfully,

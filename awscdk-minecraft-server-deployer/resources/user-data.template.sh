@@ -36,7 +36,7 @@ yum install -y python3
 pip3 install awscli --upgrade --user
 
 # login to ECR and pull the minecraft server backup/restore image
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 docker pull "$BACKUP_SERVICE_DOCKER_IMAGE_URI"
 
 # prepare a docker-compose.yml that runs the minecraft server and the backup service
@@ -46,7 +46,8 @@ services:
     minecraft:
         # image docs: https://github.com/itzg/docker-minecraft-server
         image: itzg/minecraft-server
-        restart: always
+        restart: unless-stopped
+        container_name: minecraft
         ports:
             - "25565:25565"
         environment:
@@ -55,15 +56,12 @@ services:
             VERSION: "$MINECRAFT_SERVER_SEMANTIC_VERSION"
         volumes:
             - ./minecraft-data:/data
-        networks:
-        - minecraft-server
-        deploy:
-            replicas: 1
 
     # by default, this container will inherit the same IAM role as the EC2 host
     minecraft-backup:
         # aws s3 backup image with awscli and python3
         image: "$BACKUP_SERVICE_DOCKER_IMAGE_URI"
+        restart: unless-stopped
         volumes:
             - ./minecraft-data:/minecraft-data
         command: backup-on-interval
@@ -72,20 +70,11 @@ services:
             SERVER_DATA_DIR: /minecraft-data
             BACKUPS_S3_PREFIX: minecraft-server-backups
             BACKUP_INTERVAL_SECONDS: "$BACKUP_INTERVAL_SECONDS"
-        deploy:
-            replicas: 1
-
-networks:
-    minecraft-server:
-        driver: overlay
-        name: minecraft-server
-        attachable: true
 EOF
 
 # restore from backup if $RESTORE_FROM_MOST_RECENT_BACKUP is set to "true"
 if [ "$RESTORE_FROM_MOST_RECENT_BACKUP" = "true" ]; then
     docker-compose run minecraft-backup restore || echo "Failed to restore from backup. Starting fresh..."
-    docker network rm minecraft-server
 fi
 
 ##########################################
@@ -94,4 +83,4 @@ fi
 
 # create a docker stack
 # docker network create minecraft-server
-docker stack deploy -c docker-compose.yml minecraft
+docker-compose up -d

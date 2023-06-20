@@ -2,7 +2,13 @@
 
 import hashlib
 import json
+from typing import Optional
 
+from aws_cdk import aws_certificatemanager as acm
+from aws_cdk import aws_cloudfront as cloudfront
+from aws_cdk import aws_cloudfront_origins as cloudfront_origins
+from aws_cdk import aws_route53 as route53
+from aws_cdk import aws_route53_targets as route53_targets
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_s3_deployment as s3_deployment
 from aws_prototyping_sdk.static_website import StaticWebsite
@@ -62,19 +68,44 @@ def create_config_json_file_in_static_site_s3_bucket(
 def make_minecraft_platform_frontend_static_website(
     scope: Construct,
     id_prefix: str,
+    top_level_hosted_zone: route53.IHostedZone,
+    tls_cert: Optional[acm.ICertificate] = None,
 ) -> StaticWebsite:
     """Deploy the static minecraft platform frontend web files to a S3/CloudFront static site."""
-    return StaticWebsite(
+    optional_kwargs = {}
+    if None not in [top_level_hosted_zone, tls_cert]:
+        website_bucket = s3.Bucket(scope, id=f"{id_prefix}WebsiteBucket")
+        optional_kwargs["website_bucket"] = website_bucket
+        optional_kwargs["distribution_props"] = cloudfront.DistributionProps(
+            default_behavior=cloudfront.BehaviorOptions(
+                origin=cloudfront_origins.S3Origin(website_bucket),
+            ),
+            domain_names=[f"minecraft-paas.{top_level_hosted_zone.zone_name}"],
+            certificate=tls_cert,
+        )
+
+    static_website = StaticWebsite(
         scope=scope,
         id=f"{id_prefix}MinecraftPlatformFrontend",
         website_content_path=str(MINECRAFT_PLATFORM_FRONTEND_STATIC_WEBSITE__DIR),
-        # distribution_props=cloudfront.D
-        # distribution_props=cloudfront.DistributionProps(
-        #     # USA, Canada, Europe, & Israel.
-        #     price_class=cloudfront.PriceClass.PRICE_CLASS_100,
-        #     default_behavior=cloudfront.BehaviorOptions(origin=cloudfront.Origin),
-        # ),
+        **optional_kwargs,
     )
+
+    # add a DNS record for the frontend
+    if None not in [top_level_hosted_zone, tls_cert]:
+        route53.ARecord(
+            scope=scope,
+            id=f"{scope.node.id}FrontendARecord",
+            zone=top_level_hosted_zone,
+            target=route53.RecordTarget.from_alias(
+                alias_target=route53_targets.CloudFrontTarget(
+                    distribution=static_website.cloud_front_distribution,
+                )
+            ),
+            record_name=f"minecraft-paas.{top_level_hosted_zone.zone_name}",
+        )
+
+    return static_website
 
 
 def hash_string_deterministically(string: str) -> str:
