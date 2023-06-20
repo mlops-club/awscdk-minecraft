@@ -99,6 +99,120 @@ want them to be able to start and stop the server, too.
 
 Otherwise, just share the IP address with any friends you'd like to be able to join the game.
 
+## Advanced Usage
+
+> 📌 **Note:** For a complete, working example of the advanced usage, you can refer to
+[this other repository](https://github.com/phitoduck/cousin-minecraft-server/blob/main/infrastructure/app.py).
+
+### Pretty domain name
+
+You can add the components of your minecraft stack as subdomains of a custom
+domain name.
+
+You will need to have a domain name registered with AWS Route53.
+
+For example, for the domain `mlops-club.org` you can create these mappings:
+
+- `minecraft-paas.mlops-club.org` -> the PaaS UI to start/stop the server
+- `server.minecraft-paas.mlops-club.org` -> the minecraft server, whenever the EC2 instance is running
+
+```python
+# app.py
+import os
+
+from aws_cdk import App, Environment
+from cdk_minecraft import MinecraftPaasStack
+
+APP = App()
+
+MinecraftPaasStack(
+   APP,
+   "awscdk-minecraft",
+   # login_page_domain_name_prefix just needs to be unique across all AWS accounts
+   login_page_domain_name_prefix="mlops-club-minecraft-login"
+)
+
+APP.synth()
+```
+
+### Connecting to the server over SSH
+
+After starting a temporary EC2 instance with the minecraft server, you can
+connect to it over SSH if you set up a keypair.
+
+1. Create a keypair, for example, using an existing SSH keypair.
+
+   ```bash
+   # create a new keypair from ~/.ssh/id_rsa.pub
+   SSH_KEY_PAIR_NAME=eric-key
+   aws ec2 import-key-pair --key-name $SSH_KEY_PAIR_NAME --public-key-material file://~/.ssh/id_rsa.pub --profile <your-aws-profile> --region <your-minecraft-aws-region>
+   ```
+
+   If you have trouble with this command, you can always create the key pair in the AWS Console.
+
+2. Register the keypair with your stack.
+
+   ```python
+   # app.py
+
+   ...
+
+   MinecraftPaasStack(
+      APP,
+      "awscdk-minecraft",
+      ...
+      ssh_key_pair_name="my-keypair",
+   )
+
+   ...
+   ```
+
+3. Connect to the instance when the server is running.
+
+   ```bash
+   ssh -i ~/.ssh/id_rsa ec2-user@<instance-ip-address>
+   ```
+
+### Customizing the server and running commands as admin
+
+The Minecraft server runs on the EC2 instance using `docker-compose`.
+
+The container is called `itzg/docker-minecraft-server`. Specifically, using an
+optimized Minecraft server JAR called [Paper](https://papermc.io/).
+
+Paper is
+a fork of the popular [Spigot](https://www.spigotmc.org/) server, which in turn
+is a fork of CraftBukkit. Spigot and Bukkit "plugins" (mods) like [WorldEdit](https://dev.bukkit.org/projects/worldedit) are supported by Paper.
+
+The file structure of the server is like this:
+
+```text
+/minecraft
+├── docker-compose.yml
+└── minecraft-data/     # mounted volume
+    ├── ...
+    └── server.properties
+```
+
+To issue commands on the server:
+
+```bash
+# connect to the instance
+ssh -i ~/.ssh/id_rsa ec2-user@<instance-ip-address>
+
+# operate as root to have docker privileges
+sudo su
+
+# start an RCON session
+docker exec -i minecraft rcon-cli
+```
+
+*Much* more detailed documentation for operating the minecraft server
+can be found in the `itzg/docker-minecraft-server` docs:
+
+[![](https://github.com/mlops-club/awscdk-minecraft/blob/trunk/docs/itzg-docker-minecraft-docs-link.png?raw=true)](https://docker-minecraft-server.readthedocs.io/en/latest/)
+
+> Image taken from [itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server)
 
 ## Contributing
 
@@ -210,3 +324,10 @@ DON'T COMMIT...
 
 The pre-commit hooks setup for this repo when you ran `just install` will remind you
 about these each time you commit :)
+
+Features
+
+- [ ] Custom URL for site
+- [ ] Custom URL for minecraft server
+- [ ] Specify existing SSH key pair to look up
+- [ ] Specify server version

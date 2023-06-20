@@ -4,22 +4,25 @@ services:
   minecraft:
     # image docs: https://github.com/itzg/docker-minecraft-server
     image: itzg/minecraft-server
+    container_name: minecraft
     restart: always
     ports:
       - "25565:25565"
     environment:
       EULA: TRUE
       TYPE: PAPER
-      VERSION: ${MINECRAFT_SERVER_SEMANTIC_VERSION:-1.19}
-      MINMEM: "hi"
-      MAXMEM: "no"
-    networks:
-      - minecraft-server
+      VERSION: ${MINECRAFT_SERVER_SEMANTIC_VERSION:-1.20}
+      MEMORY: 3G
     deploy:
       replicas: 1
-
-networks:
-  minecraft-server:
-    driver: overlay
-    name: minecraft-server
-    attachable: true
+    stdin_open: true
+    volumes:
+      - ./data:/data
+#     networks:
+#       - minecraft-server
+#
+# networks:
+#   minecraft-server:
+#     driver: overlay
+#     name: minecraft-server
+#     attachable: true

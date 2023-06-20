@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from string import Template
+from typing import Optional
 
 import aws_cdk as cdk
 from aws_cdk import Stack
@@ -9,6 +10,7 @@ from aws_cdk import aws_cloudwatch as cloudwatch
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_ecr as ecr
 from aws_cdk import aws_iam as iam
+from aws_cdk import aws_route53 as route53
 from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
@@ -25,6 +27,7 @@ class ServerStack(Stack):
     :param backup_service_ecr_repo_arn: The ARN of the ECR repository for the backup service.
     :param backup_service_docker_image_uri: The URI of the Docker image in ECR for the backup service.
     :param minecraft_server_backups_bucket_name: The name of the S3 bucket to store backups in.
+    :param ssh_key_pair_name: The name of the SSH key pair to use for the EC2 instance.
     """
 
     def __init__(
@@ -35,6 +38,8 @@ class ServerStack(Stack):
         backup_service_ecr_repo_arn: str,
         backup_service_docker_image_uri: str,
         minecraft_server_backups_bucket_name: str,
+        ssh_key_pair_name: Optional[str] = None,
+        custom_top_level_domain_name: Optional[str] = None,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -98,6 +103,7 @@ class ServerStack(Stack):
             user_data_causes_replacement=True,
             role=_iam_role,
             security_group=_sg,
+            key_name=ssh_key_pair_name,
         )
         grant_ecr_pull_access(
             ecr_repo_arn=backup_service_ecr_repo_arn, role=_ec2.role, repo_construct_id="BackupServiceEcrRepo"
@@ -107,6 +113,20 @@ class ServerStack(Stack):
             role=_ec2.role,
             bucket_construct_id="MinecraftServerBackupsBucket",
         )
+
+        if custom_top_level_domain_name:
+            a_record: route53.ARecord = add_custom_subdomain_to_ec2_ip(
+                scope=self,
+                instance=_ec2,
+                custom_top_level_domain_name=custom_top_level_domain_name,
+            )
+
+            cdk.CfnOutput(
+                scope=self,
+                id="MinecraftServerDomainName",
+                value=a_record.domain_name,
+                description="The domain name of the Minecraft server",
+            )
 
         # add stack output for ip address of the ec2 instance
         cdk.CfnOutput(
@@ -257,6 +277,25 @@ def add_alarms_to_stack(scope: Construct, ec2_instance_id: str) -> None:
         alarm_description="Alarm if number of open connections is greater than 80% for 1 minute",
     )
 
+
+def add_custom_subdomain_to_ec2_ip(
+    scope: Construct,
+    instance: ec2.Instance,
+    custom_top_level_domain_name: str,
+) -> route53.ARecord:
+    hosted_zone = route53.HostedZone.from_lookup(
+        scope=scope,
+        id=f"{scope.node.id}HostedZone",
+        domain_name=custom_top_level_domain_name,
+    )
+
+    return route53.ARecord(
+        scope=scope,
+        id=f"{scope.node.id}ARecord",
+        zone=hosted_zone,
+        target=route53.RecordTarget.from_ip_addresses(instance.instance_public_ip),
+        record_name=f"server.minecraft-paas.{hosted_zone.zone_name}",
+    )
 
 if __name__ == "__main__":
     print(

@@ -1,2 +1,6 @@
 """Modules for awscdk-minecraft."""
-from .stack import MinecraftPaasStack  # noqa: F401
+
+from .construct_ import MinecraftPaas
+from .stack import MinecraftPaasStack
+
+__all__ = ["MinecraftPaas", "MinecraftPaasStack"]

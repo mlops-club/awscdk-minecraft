@@ -17,13 +17,14 @@ services:
       #AWS_ACCOUNT_ID: "630013828440"
       # these env vars can be grabbed from the AWS Batch UI in the Job Definition
       AWS_PROFILE: mlops-club
-      AWS_REGION:	us-west-2
+      AWS_REGION:	us-east-1
+      SSH_KEY_PAIR_NAME:	ericriddoch
       AWS_ACCOUNT_ID:	630013828440
       MANAGED_BY_AWS:	STARTED_BY_STEP_FUNCTIONS
-      BACKUP_SERVICE_DOCKER_IMAGE_URI:	630013828440.dkr.ecr.us-west-2.amazonaws.com/awscdk-minecraft-mcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo192beeb7-jwnlifcq2rzf
-      MINECRAFT_SERVER_BACKUPS_BUCKET_NAME:	awscdk-minecraft-minecraftserverbackupsbucketce8b-18lbuip34jg7v
+      BACKUP_SERVICE_DOCKER_IMAGE_URI:	630013828440.dkr.ecr.us-east-1.amazonaws.com/awscdk-minecraft-cousins-minecraftpaasmcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo7e27ab78-ex0z7a888orm
+      MINECRAFT_SERVER_BACKUPS_BUCKET_NAME:	awscdk-minecraft-cousins-minecraftpaasminecraftse-1ll9k6g2rtbbd
       AWS_ACCOUNT:	630013828440
-      BACKUP_SERVICE_ECR_REPO_ARN:	arn:aws:ecr:us-west-2:630013828440:repository/awscdk-minecraft-mcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo192beeb7-jwnlifcq2rzf
+      BACKUP_SERVICE_ECR_REPO_ARN:	arn:aws:ecr:us-east-1:630013828440:repository/awscdk-minecraft-cousins-minecraftpaasmcdeployjobdefinitionminecraftserverbackupserviceimageminecraftbackupserviceecrrepo7e27ab78-ex0z7a888orm
 
     volumes:
       - ~/.aws:/root/.aws:ro

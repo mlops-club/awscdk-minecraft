@@ -1,5 +1,7 @@
 """Job definition for the batch job that will deploy the Minecraft server on EC2."""
 
+from typing import Optional
+
 from aws_cdk import Stack
 from aws_cdk import aws_batch_alpha as batch_alpha
 from aws_cdk import aws_ecr_assets as ecr_assets
@@ -14,6 +16,9 @@ def make_minecraft_ec2_deployment__batch_job_definition(
     scope: Construct,
     id_prefix: str,
     backups_bucket_name: str,
+    ssh_key_pair_name: Optional[str] = None,
+    top_level_custom_domain_name: Optional[str] = None,
+    minecraft_server_version: Optional[str] = None,
 ) -> batch_alpha.JobDefinition:
     """Create a batch job definition to deploy a Minecraft server on EC2.
 
@@ -39,6 +44,20 @@ def make_minecraft_ec2_deployment__batch_job_definition(
         scope=scope, id=f"{id_prefix}MinecraftServerBackupServiceImage", ensure_unique_ids=True
     )
 
+    env_vars = {
+        "AWS_ACCOUNT_ID": stack.account,
+        "AWS_REGION": stack.region,
+        "BACKUP_SERVICE_ECR_REPO_ARN": backup_service_image.ecr_repo_arn,
+        "BACKUP_SERVICE_DOCKER_IMAGE_URI": backup_service_image.image_uri,
+        "MINECRAFT_SERVER_BACKUPS_BUCKET_NAME": backups_bucket_name,
+    }
+    if ssh_key_pair_name:
+        env_vars["SSH_KEY_PAIR_NAME"] = ssh_key_pair_name
+    if top_level_custom_domain_name:
+        env_vars["CUSTOM_TOP_LEVEL_DOMAIN_NAME"] = top_level_custom_domain_name
+    if minecraft_server_version:
+        env_vars["MINECRAFT_SERVER_VERSION"] = minecraft_server_version
+
     return batch_alpha.JobDefinition(
         scope=scope,
         id=f"{id_prefix}CdkMinecraftEc2DeploymentJD",
@@ -61,13 +80,7 @@ def make_minecraft_ec2_deployment__batch_job_definition(
                 },
             ),
             assign_public_ip=True,
-            environment={
-                "AWS_ACCOUNT_ID": stack.account,
-                "AWS_REGION": stack.region,
-                "BACKUP_SERVICE_ECR_REPO_ARN": backup_service_image.ecr_repo_arn,
-                "BACKUP_SERVICE_DOCKER_IMAGE_URI": backup_service_image.image_uri,
-                "MINECRAFT_SERVER_BACKUPS_BUCKET_NAME": backups_bucket_name,
-            },
+            environment=env_vars,
             vcpus=1,
             memory_limit_mib=2 * 1024,
         ),
