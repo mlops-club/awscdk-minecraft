@@ -19,6 +19,7 @@ def make_minecraft_ec2_deployment__batch_job_definition(
     ssh_key_pair_name: Optional[str] = None,
     top_level_custom_domain_name: Optional[str] = None,
     minecraft_server_version: Optional[str] = None,
+    ec2_instance_type: Optional[str] = "t2.medium",
 ) -> batch_alpha.JobDefinition:
     """Create a batch job definition to deploy a Minecraft server on EC2.
 
@@ -50,6 +51,7 @@ def make_minecraft_ec2_deployment__batch_job_definition(
         "BACKUP_SERVICE_ECR_REPO_ARN": backup_service_image.ecr_repo_arn,
         "BACKUP_SERVICE_DOCKER_IMAGE_URI": backup_service_image.image_uri,
         "MINECRAFT_SERVER_BACKUPS_BUCKET_NAME": backups_bucket_name,
+        "EC2_INSTANCE_TYPE": ec2_instance_type,
     }
     if ssh_key_pair_name:
         env_vars["SSH_KEY_PAIR_NAME"] = ssh_key_pair_name

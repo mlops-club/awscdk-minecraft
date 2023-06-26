@@ -40,6 +40,7 @@ class ServerStack(Stack):
         minecraft_server_backups_bucket_name: str,
         ssh_key_pair_name: Optional[str] = None,
         custom_top_level_domain_name: Optional[str] = None,
+        ec2_instance_type: Optional[str] = "t2.medium",
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -97,7 +98,7 @@ class ServerStack(Stack):
             scope=self,
             id="MinecraftServerInstance",
             vpc=_vpc,
-            instance_type=ec2.InstanceType("t2.medium"),
+            instance_type=ec2.InstanceType(ec2_instance_type),
             machine_image=ec2.MachineImage.latest_amazon_linux(),
             user_data=_user_data_script,
             user_data_causes_replacement=True,

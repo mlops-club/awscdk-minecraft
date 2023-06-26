@@ -15,6 +15,7 @@ BACKUP_SERVICE_DOCKER_IMAGE_URI = os.environ["BACKUP_SERVICE_DOCKER_IMAGE_URI"]
 MINECRAFT_SERVER_BACKUPS_BUCKET_NAME = os.environ["MINECRAFT_SERVER_BACKUPS_BUCKET_NAME"]
 SSH_KEY_PAIR_NAME = os.environ.get("SSH_KEY_PAIR_NAME", None)
 CUSTOM_TOP_LEVEL_DOMAIN_NAME = os.environ.get("CUSTOM_TOP_LEVEL_DOMAIN_NAME", None)
+EC2_INSTANCE_TYPE = os.environ.get("EC2_INSTANCE_TYPE", None)
 
 print(f"[{datetime.now()}] Running app.py for Account {AWS_ACCOUNT_ID}, Region {AWS_REGION}")
 
@@ -31,6 +32,7 @@ ServerStack(
     minecraft_server_backups_bucket_name=MINECRAFT_SERVER_BACKUPS_BUCKET_NAME,
     ssh_key_pair_name=SSH_KEY_PAIR_NAME,
     custom_top_level_domain_name=CUSTOM_TOP_LEVEL_DOMAIN_NAME,
+    ec2_instance_type=EC2_INSTANCE_TYPE,
     env=CDK_ENV,
 )
 

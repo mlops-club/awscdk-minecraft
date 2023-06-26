@@ -58,6 +58,7 @@ class MinecraftPaas(Construct):
         minecraft-paas.<top_level_custom_domain_name> -> Static Website
         server.minecraft-paas.<top_level_custom_domain_name> -> EC2 Instance
         api.minecraft-paas.<top_level_custom_domain_name> -> API Gateway
+    :param ec2_instance_type: e.g. `t2.medium`
 
     :ivar job_queue: The job queue for the batch jobs
     :ivar minecraft_server_deployer_job_definition: The job definition for the batch jobs
@@ -78,6 +79,7 @@ class MinecraftPaas(Construct):
         ssh_key_pair_name: Optional[str] = None,
         top_level_custom_domain_name: Optional[str] = None,
         minecraft_server_version: Optional[str] = None,
+        ec2_instance_type: Optional[str] = None,
     ) -> None:
         super().__init__(scope, construct_id)
 
@@ -110,6 +112,7 @@ class MinecraftPaas(Construct):
                 ssh_key_pair_name=ssh_key_pair_name,
                 top_level_custom_domain_name=top_level_custom_domain_name,
                 minecraft_server_version=minecraft_server_version,
+                ec2_instance_type=ec2_instance_type,
             )
         )
 
