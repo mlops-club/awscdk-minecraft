@@ -1,6 +1,6 @@
 /**
  * Helper functions that use the generated src/api/ code to make requests to the backend API.
- * 
+ *
  * Note: these functions currently do not handle errors, but they should. We wrote these
  * the way they are to quickly get an MVP working, but the way these are written, users
  * will have no idea if errors occur.
