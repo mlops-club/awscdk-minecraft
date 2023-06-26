@@ -8,9 +8,9 @@ import { fetchConfig } from "../../config";
 
 /**
  * Buttons and a dropdown that can be used to view the frontend state and switch between pages.
- * 
- * @param props 
- * @returns 
+ *
+ * @param props
+ * @returns
  */
 const DebugTools = (props: {
     minecraftClient: MinecraftServerApi | null,

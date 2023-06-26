@@ -2,20 +2,20 @@
 This script is for downloading zip files from an S3 bucket and unzipping them.
 """
 
-from mypy_boto3_s3 import S3Client
-import boto3
-from botocore.exceptions import ClientError
 import logging
 import os
 from zipfile import ZipFile
+
+import boto3
+from botocore.exceptions import ClientError
+from mypy_boto3_s3 import S3Client
 from s3_backup_service.zip_directory import (
     BUCKET_NAME,
     OBJECT_NAME,
-)
-from s3_backup_service.zip_directory import (
     create_zipfile_from_directory,
     upload_file_to_s3,
 )
+
 
 def create_backup_directory_and_file():
     os.mkdir(path='./backup')
@@ -39,7 +39,7 @@ if __name__=="__main__":
     zipfile = create_zipfile_from_directory("./tests")
     zipfile_path = zipfile.filename
     upload_file_to_s3(s3_client, zipfile_path, BUCKET_NAME, OBJECT_NAME)
-    
+
     create_backup_directory_and_file()
     download_file_from_s3(s3_client, './backup/downloaded_zipfile.zip', BUCKET_NAME, OBJECT_NAME)
     unzip_file('./backup/downloaded_zipfile.zip', './backup')

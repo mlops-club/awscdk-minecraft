@@ -1,12 +1,10 @@
 """AWS CDK construct that builds the docker image for the Minecraft server backup service."""
 
-from aws_cdk import aws_ecr as ecr
-from aws_cdk import aws_iam as iam
-from aws_cdk import aws_ecr_assets as ecr_assets
-
 import cdk_ecr_deployment as ecr_deployment
-from constructs import Construct
+from aws_cdk import aws_ecr as ecr
+from aws_cdk import aws_ecr_assets as ecr_assets
 from cdk_minecraft.constants import MINECRAFT_PLATFORM_BACKUP_SERVICE__DIR
+from constructs import Construct
 
 
 class MinecraftServerBackupServiceImage(Construct):
