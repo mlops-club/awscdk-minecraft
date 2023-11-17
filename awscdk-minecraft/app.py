@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 
 from aws_cdk import App, Environment
